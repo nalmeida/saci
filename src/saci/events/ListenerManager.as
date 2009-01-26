@@ -80,7 +80,7 @@
 					eventsFound++;
 				}
 			}
-			if(eventsFound < 1) Logger.logWarining("[ListenerManager.removeEventListener]\nEvent type: \"" + tmpEvent.type + "\" listener: " + tmpEvent.listener + " for " + tmpEvent.dispatcher + " NOT FOUND.");
+			if(eventsFound < 1) Logger.logWarning("[ListenerManager.removeEventListener]\nEvent type: \"" + tmpEvent.type + "\" listener: " + tmpEvent.listener + " for " + tmpEvent.dispatcher + " NOT FOUND.");
 		}
 		
 		/**
