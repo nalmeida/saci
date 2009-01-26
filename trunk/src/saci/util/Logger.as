@@ -11,7 +11,7 @@
 	
 	Logger.init(Logger.LOG_VERBOSE);
 	Logger.logError("error text");
-	Logger.logWarining("warning text");
+	Logger.logWarning("warning text");
 	Logger.log("info text");
 	
 	 */
@@ -48,7 +48,7 @@
 		 * Faz o log de um AVISO se logLevel for LOG_WARNINGS ou LOG_VERBOSE.
 		 * @param	str	Valor que se deseja fazer log
 		 */
-		public static function logWarining(str:*):void {
+		public static function logWarning(str:*):void {
 			if (_logLevel > 1) 
 				trace(Logger.LINE_WARNING.replace("%s", " WARNING ") + "\n" +str + "\n" + Logger.LINE_WARNING.replace("%s", "---------"));
 		}
