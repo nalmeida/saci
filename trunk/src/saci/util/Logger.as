@@ -1,9 +1,6 @@
 ﻿package saci.util {
 	
-		
 	import flash.display.DisplayObjectContainer;
-	import saci.ui.SaciSprite;
-	import flash.text.TextField;
 	
 	/**
 	 * Classe de Log que permite mostrar ou esconder os traces configurando uma a Logger.init
@@ -11,9 +8,6 @@
 	 * @since 20/1/2009 15:13
 	 * @example 
 	 * <pre>
-	 * import saci.ui.SaciSprite;
-	 * import saci.util.Logger;
-	 * 
 	 * Logger.init(Logger.LOG_VERBOSE);
 	 * Logger.logError("error text");
 	 * Logger.logWarning("warning text");
@@ -21,7 +15,6 @@
 	 * </pre>
 	 * @see saci.ui.Console
 	 */
-	
 	public class Logger {
 		
         public static const LOG_ERRORS:int = 1;
