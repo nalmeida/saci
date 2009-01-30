@@ -71,7 +71,7 @@
 		 * @param	$txt	Texto que se deseja logar
 		 */
 		public function log($txt:*):void {
-			if (visible && !isPaused) {
+			if (!isPaused) {
 				appendText($txt);
 			}
 		}
