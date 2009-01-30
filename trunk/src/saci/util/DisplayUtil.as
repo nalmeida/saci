@@ -17,6 +17,7 @@
 		 * Remove todos elementos visuais de dentro do SaciSprite. Se for um MovieClip, para ele e remove. Se estiver no ListenerManager, remove todos os eventos associados ao objeto e o remove.
 		 * Agradecimento a Igor Almeida (redneck framework) (http://ialmeida.com) pela função básica.
 		 * @param	$who	
+		 * @see http://ialmeida.com
 		 */
 		public static function removeChilds($who:DisplayObjectContainer):void {
 			var _listenerManager:ListenerManager = ListenerManager.getInstance();

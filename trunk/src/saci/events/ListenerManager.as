@@ -4,14 +4,13 @@
 	import flash.utils.Dictionary;
 	import saci.interfaces.IDestroyable;
 	import saci.events.EventInfoVO;
-	import saci.ui.SaciSprite;
 	import saci.util.Logger;
 	
 	/**
 	 * Classe estática (singleton) para controlar (adicionar e remover) eventos
-	 * Agradecimento CASA framework (http://as3.casalib.org) pela função básica.
 	 * @author Nicholas Almeida
 	 * @since 22/1/2009 17:58
+	 * @see http://as3.casalib.org
 	 */
 	public class ListenerManager implements IDestroyable{
 		
