@@ -17,7 +17,8 @@
 	/**
 	 * Classe de MovieClip que implementa IDisplayable, IDestroyable e IRemovableEventDispatcher. Também adiciona os métodos de playReverse.
 	 * @author Nicholas Almeida
-	 * @since 
+	 * @since 30/1/2009 18:11
+	 * @see	http://as3.casalib.org
 	 */
 	public class SaciMovieClip extends MovieClip implements IDisplayable, IDestroyable, IRemovableEventDispatcher{
 		
