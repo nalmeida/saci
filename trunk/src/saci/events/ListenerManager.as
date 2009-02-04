@@ -54,7 +54,6 @@
 		 */
 		public function addEventListener($dispatcher:IEventDispatcher, $type:String, $listener:Function, $useCapture:Boolean = false, $priority:int = 0, $useWeakReference:Boolean = false):void {
 			var tmpEvent:EventInfoVO = new EventInfoVO($dispatcher, $type, $listener, $useCapture, $priority, $useWeakReference);
-			
 			$dispatcher.addEventListener(tmpEvent.type, tmpEvent.listener, tmpEvent.useCapture, tmpEvent.priority, tmpEvent.useWeakReference);
 			ListenerManager._arrEvents.push(tmpEvent);
 		}
@@ -68,9 +67,7 @@
 		 */
 		public function removeEventListener($dispatcher:IEventDispatcher, $type:String, $listener:Function, $useCapture:Boolean = false):void {
 			var tmpEvent:EventInfoVO = new EventInfoVO($dispatcher, $type, $listener, $useCapture);
-			
 			var eventsFound:int = 0;
-			
 			_arrLength = ListenerManager._arrEvents.length;
 			while (_arrLength--) {
 				if (ListenerManager._arrEvents[_arrLength].equals(tmpEvent)) {
@@ -91,6 +88,25 @@
 			_arrLength = ListenerManager._arrEvents.length;
 			while (_arrLength--) {
 				if (ListenerManager._arrEvents[_arrLength].dispatcher === $dispatcher) {
+					return true;
+				}
+			}
+			return false;
+		}
+	
+		/**
+		 * Retorna se o objeto possui o evento.
+		 * @param	$dispatcher	Objeto que está despachando o evento
+		 * @param	$type	Tipo do evento
+		 * @param	$listener	Função que escuta o evento
+		 * @param	$useCapture
+		 * @return
+		 */
+		public function hasEventListener($dispatcher:IEventDispatcher, $type:String, $listener:Function, $useCapture:Boolean = false):Boolean {
+			var tmpEvent:EventInfoVO = new EventInfoVO($dispatcher, $type, $listener, $useCapture);
+			_arrLength = ListenerManager._arrEvents.length;
+			while (_arrLength--) {
+				if (ListenerManager._arrEvents[_arrLength].equals(tmpEvent)) {
 					return true;
 				}
 			}
