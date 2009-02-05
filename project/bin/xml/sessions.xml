@@ -1,0 +1,79 @@
+﻿<root>
+	<global>
+		<namespace value="br.com.project.ui.sessions.session1" />
+		<carneiro value="marcelão miranda carneiro" />
+	</global>
+	<sessions useDeeplink="true" defaultSessionId="session2">
+
+		<session id="session1" deeplink="/session1/" className="{namespace}.Session1">
+			<dependencies>
+				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
+				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
+				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
+				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
+				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+				<!-- <item id="outro_video" value="caminho.flv" type="video" weight="49349" version="2.1.2.1"/>
+				<item id="outro_som" value="{root}caminho.mp3" type="sound" weight="37085"/>
+				<item id="outro_xml" value="caminho.xml" type="xml" weight="100"/>
+				<item id="outro_txt" value="caminho.txt" type="txt" weight="100"/> -->
+			</dependencies>
+			<params>
+				<linkage id="movieclip1" value="lib_session1"/>
+			</params>
+		</session>
+		<session id="session2" deeplink="/session2/" className="{namespace}.Session1">
+			<dependencies>
+				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
+				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
+				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
+				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
+				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+			</dependencies>
+			<params>
+				<linkage id="movieclip1" value="lib_session1" deds="{namespace}"/>
+			</params>
+			
+			<session id="sub-area1" deeplink="sub-area1" className="{namespace}.Session1" >
+				<dependencies>
+					<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
+					<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
+					<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
+					<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
+					<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+				</dependencies>
+				<params>
+					<linkage id="movieclip1" value="lib_session1" />
+				</params>
+			</session>
+			<session id="sub-area2" deeplink="/sub-area2" className="{namespace}.Session1" >
+				<dependencies>
+					<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
+					<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
+					<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
+					<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
+					<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+				</dependencies>
+				<params>
+					<linkage id="movieclip1" value="lib_session1" />
+				</params>
+				<session id="sub-sub-area1" deeplink="/sub-sub-area1" className="{namespace}.Session1" >
+					<dependencies>
+						<item id="outro_swf" value="caminho.swf" type="movieclip"/>
+					</dependencies>
+				</session>
+			</session>
+		</session>
+		<session id="session3" deeplink="/session3/" className="br.com.project.ui.sessions.session1.Session1">
+			<dependencies>
+				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
+				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
+				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
+				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
+				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" weight="100" version="1"/>
+			</dependencies>
+			<params>
+				<linkage id="movieclip1" value="lib_session1" />
+			</params>
+		</session>
+	</sessions>
+</root>
