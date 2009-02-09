@@ -74,8 +74,6 @@
 		 */
 		public function parseXml():void {
 			
-			trace("[SessionManager.parseXml] sessionManager:");
-			
 			_xml = _config.xml;
 			_shortcuts = _config.shortcuts;
 			
