@@ -1,15 +1,12 @@
-﻿package br.com.project.sessions {
+﻿package br.com.halls.sessions {
 	
-	import br.com.project.data.ServerData;
-    import br.com.project.loader.SaciBulkLoader;
-	import br.com.project.navigation.Navigation;
-	import br.com.project.sessions.collections.DependencyItemVOCollection;
-	import br.com.project.sessions.collections.SessionCollection;
-	import br.com.project.sessions.vo.DependencyItemVO;
-	import br.com.project.sessions.vo.SessionInfoVO;
-	import br.com.stimuli.loading.BulkLoader;
-	import flash.events.ErrorEvent;
-	import flash.events.Event;
+	import br.com.halls.data.Config;
+    import br.com.halls.data.ServerData;
+    import br.com.halls.navigation.Navigation;
+    import br.com.halls.sessions.collections.DependencyItemVOCollection;
+    import br.com.halls.sessions.collections.SessionCollection;
+    import br.com.halls.sessions.vo.DependencyItemVO;
+    import br.com.halls.sessions.vo.SessionInfoVO;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.setTimeout;
 	import flash.xml.XMLNode;
@@ -22,15 +19,14 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Pires de Almeida
 	 * @version 0.1
 	 * @since 4/2/2009 22:17
-	 * @see br.com.project.sessions.Session
-	 * @see br.com.project.navigation.Navigation
+     * @see br.com.halls.sessions.Session
+     * @see br.com.halls.navigation.Navigation
 	 */
 	public class SessionManager {
 		
 		/**
 		 * Static stuff (singleton)
 		 */
-		static private const LOADER_ID:String = "sessions-xml";
 		static private var _instance:SessionManager;
 		static private var _allowInstance:Boolean;
        
@@ -45,6 +41,7 @@
 				SessionManager._instance._navigation = Navigation.getInstance();
 				SessionManager._instance._serverData = ServerData.getInstance();
 				SessionManager._instance._listenerManager = ListenerManager.getInstance();
+				SessionManager._instance._config = Config.getInstance();
 			}
 			return SessionManager._instance;
 		}
@@ -55,13 +52,12 @@
 		private var _listenerManager:ListenerManager;
 		private var _navigation:Navigation;
 		private var _serverData:ServerData;
+		private var _config:Config;
         
-		private var _loader:SaciBulkLoader;
-		private var _mockXml:XML;
 		private var _xml:XML;
 		private var _isFinished:Boolean = false;
 
-		private var _shortcuts:Object = {};
+		private var _shortcuts:Object;
 		private var _defaultSessionAddress:String;
 		private var _useDeeplink:Boolean; //TODOFBIZ: --- [SessionManager._useDeeplink] implementar a useDeepLink
 		private var _sessionCollection:SessionCollection;
@@ -73,83 +69,23 @@
 		}
 		
 		/**
-		 * Começa carregamento do xml com as configurações das seções.
-		 * @param	$sessionsXmlUrl
-		 * @param	$mock
-		 */
-		public function load($sessionsXmlUrl:String, $mock:XML = null):void {
-			_mockXml = $mock;
-			
-            _loader = SaciBulkLoader.getInstance();
-			_loader.add($sessionsXmlUrl, { id:LOADER_ID, preventCache:true } );
-			_listenerManager.addEventListener(loader.bulk.get(LOADER_ID), Event.COMPLETE, _onCompleteXmlLoad);
-			_listenerManager.addEventListener(loader.bulk.get(LOADER_ID), ErrorEvent.ERROR, _onErrorXmlLoad);
-			_loader.start();
-		}
-		
-		/**
-		 * Handler de sucesso no carregamento.
-		 * @param	e
-		 */
-		private function _onCompleteXmlLoad(e:Event):void{
-			_listenerManager.removeAllEventListeners(loader.bulk.get(LOADER_ID));
-			_xml = loader.bulk.getXML(LOADER_ID);
-
-			Logger.log("[SessionManager._onCompleteXmlLoad] loaded XML:\n" + _xml);
-			
-			_parseXml(_xml);
-		}
-
-		/**
-		 * Handler de erro no carregamento. Usa o "xml fake" para preencher os dados.
-		 * @param	e
-		 */
-		private function _onErrorXmlLoad(e:ErrorEvent):void {
-			
-			Logger.log("[SessionManager._onErrorXmlLoad] Error loading XML, using mock up xml:\n" + _xml);
-			
-			_listenerManager.removeAllEventListeners(loader.bulk.get(LOADER_ID));
-			
-			/**
-			 * No caso de erro, carrega o xml fake
-			 */
-			if (_mockXml != null) {
-				_parseXml(_mockXml);
-			}
-		}
-		
-		/**
 		 * Lê os dados do XML e instancia as seções.
 		 * @param	$xml
 		 */
-		protected function _parseXml($xml:XML):void {
+		public function parseXml():void {
 			
-			if ($xml == null) {
-				throw new Error("[SessionManager._parseXml] ERROR: XML não está definido.");
-				return;
-			}
+			trace("[SessionManager.parseXml] sessionManager:");
 			
-			_xml = $xml;
-			_useDeeplink = (xml.sessions.@useDeeplink == "true");
-			
-			/**
-			 * gera os "shortcuts"
-			 */
-			var i:int;
-			for (i = 0; i < xml.global[0].children().length(); i++) {
-				_shortcuts[xml.global[0].children()[i].name()] = xml.global[0].children()[i].@value;
-				if (_serverData.get(xml.global[0].children()[i].name()) != null) {
-					Logger.logWarning("O xml \"" + _loader.bulk.get(LOADER_ID).url.url + "\" contém o atributo global \"" + xml.global[0].children()[i].name() + "\" que irá sobrepor o existente na ServerData.");
-				}
-			}
+			_xml = _config.xml;
+			_shortcuts = _config.shortcuts;
 			
 			/**
 			 * cria as sessions e sub-sessions
 			 */
+			var i:int;
 			for (i = 0; i < xml.sessions[0].session.length(); i++) {
 				_parseSessionsXml(xml.sessions[0].session[i]);
 			}
-			
 			
 			_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(xml.sessions.@defaultSessionId).info.deeplink;
 			_isFinished = true;
@@ -221,7 +157,6 @@
 			i = NaN;
 		}
 		
-		public function get loader():SaciBulkLoader { return _loader; }
 		public function get useDeeplink():Boolean { return _useDeeplink; }
 		public function set useDeeplink(value:Boolean):void {
 			_useDeeplink = value;
@@ -240,11 +175,6 @@
 		public function get xml():XML { return _xml; }
 
 		/**
-		 * XML fake para usar em caso de erro / teste.
-		 */
-		public function get mockXml():XML { return _mockXml; }
-		
-		/**
 		 * Coleção das seções.
 		 */
 		public function get sessionCollection():SessionCollection { return _sessionCollection; }
@@ -255,3 +185,4 @@
 		public function get isFinished():Boolean { return _isFinished; }
 	}
 }
+

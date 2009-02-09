@@ -1,9 +1,11 @@
-﻿package br.com.project{
+﻿package br.com.halls{
 	
-	import br.com.project.data.ServerData;
-	import br.com.project.loader.SaciBulkLoader;
-	import br.com.project.sessions.SessionManager;
-	import br.com.project.ui.sessions.session1.Session1;
+    import br.com.halls.data.ServerData;
+    import br.com.halls.loader.SaciBulkLoader;
+	import br.com.halls.data.Config;
+	import br.com.halls.sessions.SessionManager;
+	import br.com.halls.ui.sessions.produtos.hallspower.Hallspower;
+    import br.com.halls.ui.sessions.session1.Session1;
 	import flash.events.Event;
 	import saci.events.ListenerManager;
 	import saci.ui.Console;
@@ -16,14 +18,15 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Almeida
 	 */
 	
-	//[Frame(factoryClass="br.com.project.loader.SelfPreloaderIcon")] // precisa da as3classes
+    //[Frame(factoryClass="br.com.halls.loader.SelfPreloaderIcon")] // precisa da as3classes
 	 
 	public class Main extends SaciSprite {
 		
+		public var sessionManager:SessionManager;
 		public var listenerManager:ListenerManager;
 		public var console:Console;
 		public var bpc:int = 0;
-		public var sessionManager:SessionManager;
+		public var config:Config;
 		public var serverData:ServerData;
 		
 		public var siteRoot:SaciSprite;		
@@ -49,8 +52,9 @@
 			/**
 			 * Register Sessions;
 			 */
+			sessionManager = SessionManager.getInstance();
 			Session1;
-			//Session2;
+			Hallspower;
 			
 			/**
 			 * Document
@@ -70,12 +74,11 @@
 			serverData = ServerData.getInstance();
 			serverData.mockData = { 
 				root: "../",
-				sessions: "{root}config/sessions.xml",
+				config: "{root}config/config.xml",
 				swfPath: "{root}swf/",
 				imgPath: "{root}img/"
 			};
 			listenerManager.addEventListener(serverData, Event.COMPLETE, _onGetServerData);
-			serverData.loadDataFromJs("getObj");
 			
 			/**
 			 * Layers
@@ -103,6 +106,13 @@
 			 */
 			Logger.init(bpc, bpc > 0 && DocumentUtil.isWeb() ? console.log : trace);
 			Logger.logLevel = bpc;
+			
+			
+			/**
+			 * Load Data
+			 */
+			serverData.loadDataFromJs("getObj");
+			
 		}
 		
 		private function _onGetServerData(e:Event):void {
@@ -110,10 +120,19 @@
 			serverData.list();
 			
 			/**
-			 * SessionManager
+			 * Config
 			 */
-			sessionManager = SessionManager.getInstance();
-			sessionManager.load(serverData.get("sessions"));
+			config = Config.getInstance();
+			listenerManager.addEventListener(config, Event.COMPLETE, _buildScreen);
+			
+			config.load(serverData.get("config"));
+		}
+		
+		private function _buildScreen(e:Event):void {
+			listenerManager.removeAllEventListeners(config);
+			
+			
+			sessionManager.parseXml();
 		}
 		
 		//private function _onResizeStage(e:Event):void{
@@ -121,3 +140,4 @@
 		//}
 	}
 }
+
