@@ -5,10 +5,8 @@
 	import br.com.project.loader.SaciBulkLoader;
 	import br.com.project.sessions.SessionManager;
 	import br.com.project.ui.sessions.session1.Session1;
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
-	import flash.system.Security;
 	import saci.events.ListenerManager;
 	import saci.ui.Console;
 	import saci.ui.SaciMovieClip;
@@ -43,12 +41,7 @@
 			
 			// entry point
 			
-			Security.loadPolicyFile("http://farm1.static.flickr.com/crossdomain.xml");
-			Security.loadPolicyFile("http://farm2.static.flickr.com/crossdomain.xml");
-			Security.loadPolicyFile("http://farm3.static.flickr.com/crossdomain.xml");
-			Security.loadPolicyFile("http://farm4.static.flickr.com/crossdomain.xml");
-
-			siteRoot = new Sprite();
+			siteRoot = new SaciSprite();
 			addChild(siteRoot);
 			
 			/**
@@ -95,7 +88,7 @@
 			/**
 			 * Logger
 			 */
-			Logger.init(bpc, console.log);//  bpc > 0 && DocumentUtil.isWeb() ? console.log : trace);
+			Logger.init(bpc, bpc > 0 && DocumentUtil.isWeb() ? console.log : trace);
 			Logger.logLevel = bpc;
 		}
 		

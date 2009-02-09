@@ -35,7 +35,7 @@
 	import saci.util.Logger;
 	import saci.interfaces.IDestroyable;
 	
-	public class Collection{
+	public class Collection implements IDestroyable{
 		
 		protected var _itemType:Class;
 		protected var _itens:Array = [];
@@ -113,14 +113,15 @@
 		* Remove todos os itens da Coleção
 		* @param	$item
 		*/
-		public function destroy():void {
+		public function destroy():Boolean {
 			var i:int;
 			for (i = 0; i < _itens.length; i++) {
 				if (_itens[i] is IDestroyable) {
-					_itens[i].destroy();
+					if(_itens[i].destroy() === false) return false;
 				}
 			}
 			_itens = [];
+			return true;
 		}
 		
 		/**
