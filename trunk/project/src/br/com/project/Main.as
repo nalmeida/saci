@@ -1,11 +1,9 @@
-﻿package br.com.halls{
+﻿package br.com.project{
 	
-    import br.com.halls.data.ServerData;
-    import br.com.halls.loader.SaciBulkLoader;
-	import br.com.halls.data.Config;
-	import br.com.halls.sessions.SessionManager;
-	import br.com.halls.ui.sessions.produtos.hallspower.Hallspower;
-    import br.com.halls.ui.sessions.session1.Session1;
+	import br.com.project.data.Config;
+	import br.com.project.data.ServerData;
+	import br.com.project.sessions.SessionManager;
+	import br.com.project.ui.sessions.session1.Session1;
 	import flash.events.Event;
 	import saci.events.ListenerManager;
 	import saci.ui.Console;
@@ -18,23 +16,21 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Almeida
 	 */
 	
-    //[Frame(factoryClass="br.com.halls.loader.SelfPreloaderIcon")] // precisa da as3classes
+    //[Frame(factoryClass="br.com.project.loader.SelfPreloaderIcon")] // precisa da as3classes
 	 
 	public class Main extends SaciSprite {
 		
-		public var sessionManager:SessionManager;
-		public var listenerManager:ListenerManager;
-		public var console:Console;
-		public var bpc:int = 0;
-		public var config:Config;
-		public var serverData:ServerData;
+		private var _console:Console;
+		private var _bpc:int = 0;
+		private var _config:Config;		
+		private var _sessionManager:SessionManager;
+		private var _serverData:ServerData;
 		
-		public var siteRoot:SaciSprite;		
-		public var layerBackground:SaciSprite;
-		public var layerContent:SaciSprite;
-		public var layerBlocker:SaciSprite;
-		public var layerAlert:SaciSprite;
-		public var layerConsole:SaciSprite;
+		static private var _layerBackground:SaciSprite;
+		static private var _layerContent:SaciSprite;
+		static private var _layerBlocker:SaciSprite;
+		static private var _layerAlert:SaciSprite;
+		static private var _layerConsole:SaciSprite;
 		
 		public function Main():void {
 			if (stage) init();
@@ -44,96 +40,95 @@
 		private function init(e:Event = null):void {
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
-			// entry point
+			/**
+			 * Register Layers
+			 */
+			_layerBackground = new SaciSprite();
+			_layerContent = new SaciSprite();
+			_layerBlocker = new SaciSprite();
+			_layerAlert = new SaciSprite();
+			_layerConsole = new SaciSprite();
 			
-			siteRoot = new SaciSprite();
-			addChild(siteRoot);
+			addChild(_layerBackground);
+			addChild(_layerContent);
+			addChild(_layerBlocker);
+			addChild(_layerAlert);
+			addChild(_layerConsole);
 			
 			/**
 			 * Register Sessions;
 			 */
-			sessionManager = SessionManager.getInstance();
+			_sessionManager = SessionManager.getInstance();
 			Session1;
-			Hallspower;
 			
 			/**
 			 * Document
 			 */
-			DocumentUtil.setDocument(siteRoot);
-			bpc = DocumentUtil.isWeb() ? int(DocumentUtil.getFlashVar("bpc")) : Logger.LOG_VERBOSE;
-			
-			/**
-			 * ListenerManager
-			 */
-			listenerManager = ListenerManager.getInstance();
-			//listenerManager.addEventListener(DocumentUtil.stage, Event.RESIZE, _onResizeStage);
+			DocumentUtil.setDocument(_layerContent);
+			_bpc = DocumentUtil.isWeb() ? int(DocumentUtil.getFlashVar("bpc")) : Logger.LOG_VERBOSE;
 			
 			/**
 			 * ServerData
 			 */
-			serverData = ServerData.getInstance();
-			serverData.mockData = { 
+			_serverData = ServerData.getInstance();
+			_serverData.mockData = { 
 				root: "../",
 				config: "{root}config/config.xml",
 				swfPath: "{root}swf/",
 				imgPath: "{root}img/"
 			};
-			listenerManager.addEventListener(serverData, Event.COMPLETE, _onGetServerData);
-			
-			/**
-			 * Layers
-			 */
-			layerBackground = new SaciSprite();
-			layerContent = new SaciSprite();
-			layerBlocker = new SaciSprite();
-			layerAlert = new SaciSprite();
-			layerConsole = new SaciSprite();
-			
-			siteRoot.addChild(layerBackground);
-			siteRoot.addChild(layerContent);
-			siteRoot.addChild(layerBlocker);
-			siteRoot.addChild(layerAlert);
-			siteRoot.addChild(layerConsole);
+			_listenerManager.addEventListener(_serverData, Event.COMPLETE, _onGetServerData);
+			_serverData.loadDataFromJs("getObj");
 			
 			/**
 			 * Console
 			 */
-			console = new Console();
-			layerConsole.addChild(console);
+			_console = new Console();
+			_layerConsole.addChild(_console);
 
 			/**
 			 * Logger
 			 */
-			Logger.init(bpc, bpc > 0 && DocumentUtil.isWeb() ? console.log : trace);
-			Logger.logLevel = bpc;
+			Logger.init(_bpc, _bpc > 0 && DocumentUtil.isWeb() ? _console.log : trace);
+			Logger.logLevel = _bpc;
 			
 			
 			/**
 			 * Load Data
 			 */
-			serverData.loadDataFromJs("getObj");
+			_serverData.loadDataFromJs("getObj");
 			
 		}
 		
 		private function _onGetServerData(e:Event):void {
-			listenerManager.removeEventListener(serverData, Event.COMPLETE, _onGetServerData);
-			serverData.list();
+			_listenerManager.removeEventListener(_serverData, Event.COMPLETE, _onGetServerData);
+			_serverData.list();
 			
 			/**
 			 * Config
 			 */
-			config = Config.getInstance();
-			listenerManager.addEventListener(config, Event.COMPLETE, _buildScreen);
+			_config = Config.getInstance();
+			_listenerManager.addEventListener(_config, Event.COMPLETE, _buildScreen);
 			
-			config.load(serverData.get("config"));
+			_config.load(_serverData.get("config"));
 		}
 		
 		private function _buildScreen(e:Event):void {
-			listenerManager.removeAllEventListeners(config);
+			_listenerManager.removeAllEventListeners(_config);
 			
+			// monta a estrutura do site
 			
-			sessionManager.parseXml();
+			/**
+			 * Monta a "defaultSessionId" na tela
+			 */
+			_sessionManager.start();
 		}
+		
+		static public function get layerBackground():SaciSprite { return _layerBackground; }
+		static public function get layerContent():SaciSprite { return _layerContent; }
+		static public function get layerBlocker():SaciSprite { return _layerBlocker; }
+		static public function get layerAlert():SaciSprite { return _layerAlert; }
+		static public function get layerConsole():SaciSprite { return _layerConsole; }
 		
 		//private function _onResizeStage(e:Event):void{
 			//trace(e);

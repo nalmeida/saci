@@ -1,9 +1,9 @@
-﻿package br.com.halls.data {
+﻿package br.com.project.data {
 	
-	import br.com.halls.loader.SaciBulkLoader;
-	import br.com.halls.sessions.collections.DependencyItemVOCollection;
-	import br.com.halls.sessions.SessionManager;
-	import br.com.halls.sessions.vo.DependencyItemVO;
+	import br.com.project.loader.SaciBulkLoader;
+	import br.com.project.sessions.collections.DependencyItemVOCollection;
+	import br.com.project.sessions.SessionManager;
+	import br.com.project.sessions.vo.DependencyItemVO;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -178,6 +178,7 @@
 		 */
 		private function _onCompleteDependenciesLoad(e:Event):void {
 			_listenerManager.removeAllEventListeners(loader.bulk);
+			_sessionManager.parseXml();
 			dispatchEvent(new Event(Event.COMPLETE));
 			_isFinished = true;
 		}

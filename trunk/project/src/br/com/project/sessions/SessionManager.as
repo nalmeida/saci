@@ -1,12 +1,12 @@
-﻿package br.com.halls.sessions {
+﻿package br.com.project.sessions {
 	
-	import br.com.halls.data.Config;
-    import br.com.halls.data.ServerData;
-    import br.com.halls.navigation.Navigation;
-    import br.com.halls.sessions.collections.DependencyItemVOCollection;
-    import br.com.halls.sessions.collections.SessionCollection;
-    import br.com.halls.sessions.vo.DependencyItemVO;
-    import br.com.halls.sessions.vo.SessionInfoVO;
+	import br.com.project.data.Config;
+    import br.com.project.data.ServerData;
+    import br.com.project.navigation.Navigation;
+    import br.com.project.sessions.collections.DependencyItemVOCollection;
+    import br.com.project.sessions.collections.SessionCollection;
+    import br.com.project.sessions.vo.DependencyItemVO;
+    import br.com.project.sessions.vo.SessionInfoVO;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.setTimeout;
 	import flash.xml.XMLNode;
@@ -19,8 +19,8 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Pires de Almeida
 	 * @version 0.1
 	 * @since 4/2/2009 22:17
-     * @see br.com.halls.sessions.Session
-     * @see br.com.halls.navigation.Navigation
+     * @see br.com.project.sessions.Session
+     * @see br.com.project.navigation.Navigation
 	 */
 	public class SessionManager {
 		
@@ -89,6 +89,10 @@
 			
 			_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(xml.sessions.@defaultSessionId).info.deeplink;
 			_isFinished = true;
+			
+		}
+		
+		public function start():void {
 			if (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) {
 				_navigation.go(_sessionCollection.getByDeeplink(_defaultSessionAddress).info.id);
 			}else {
