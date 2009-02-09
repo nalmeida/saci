@@ -128,6 +128,12 @@
 		 */
 		protected function _parseDependencies():void {
 			
+			if (xml.base.dependencies.item.length() === 0) {
+				Logger.log("[Config._parseDependencies] Nenhuma dependência encontrada");
+				_onCompleteDependenciesLoad();
+				return;
+			}
+			
 			var dependencies:DependencyItemVOCollection = new DependencyItemVOCollection();
 			var dependencyXml:XML;
 			var dependency:DependencyItemVO;
@@ -176,8 +182,10 @@
 		 * Handler de sucesso no carregamento das dependências
 		 * @param	e
 		 */
-		private function _onCompleteDependenciesLoad(e:Event):void {
-			_listenerManager.removeAllEventListeners(loader.bulk);
+		private function _onCompleteDependenciesLoad(e:Event = null):void {
+			if (_listenerManager.hasEventListener(loader.bulk, Event.COMPLETE, _onCompleteDependenciesLoad)) {
+				_listenerManager.removeAllEventListeners(loader.bulk);
+			}
 			_sessionManager.parseXml();
 			dispatchEvent(new Event(Event.COMPLETE));
 			_isFinished = true;
