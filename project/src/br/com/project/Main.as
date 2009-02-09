@@ -25,7 +25,7 @@
 		static private var _mainLoaderIcon:LoaderIcon;
 		
 		public var listenerManager:ListenerManager;
-		public var siteRoot:Sprite;
+		public var siteRoot:SaciSprite;
 		public var console:Console;
 		public var bpc:int = 0;
 		public var sessionManager:SessionManager;
