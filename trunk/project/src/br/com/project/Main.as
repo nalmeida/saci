@@ -5,7 +5,6 @@
 	import br.com.project.sessions.SessionManager;
 	import br.com.project.ui.sessions.session1.Session1;
 	import flash.events.Event;
-	import flash.geom.Point;
 	import saci.events.ListenerManager;
 	import saci.ui.Console;
 	import saci.ui.SaciMovieClip;
@@ -17,11 +16,9 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Almeida
 	 */
 	
-	[Frame(factoryClass="br.com.project.loader.SelfPreloaderIcon")]
+	//[Frame(factoryClass="br.com.project.loader.SelfPreloaderIcon")] // precisa da as3classes
 	 
 	public class Main extends SaciSprite {
-		
-		static private var _mainLoaderIcon:LoaderIcon;
 		
 		public var listenerManager:ListenerManager;
 		public var console:Console;
@@ -74,15 +71,11 @@
 			serverData.mockData = { 
 				root: "../",
 				sessions: "{root}xml/sessions.xml",
-				swfPath: "{root}swf/"
+				swfPath: "{root}swf/",
+				imgPath: "{root}img/"
 			};
 			listenerManager.addEventListener(serverData, Event.COMPLETE, _onGetServerData);
 			serverData.loadDataFromJs("getObj");
-			
-			/**
-			 * Loader Icon
-			 */
-			_mainLoaderIcon = new LoaderIcon(this, new lib_standardLoader(), null, new Point(stage.stageWidth/2, stage.stageHeight/2));
 			
 			/**
 			 * Layers
@@ -126,7 +119,5 @@
 		//private function _onResizeStage(e:Event):void{
 			//trace(e);
 		//}
-		
-		static public function get mainLoaderIcon():LoaderIcon { return _mainLoaderIcon; }
 	}
 }
