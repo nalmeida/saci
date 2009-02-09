@@ -54,10 +54,10 @@
 		}
 		
 		private function _showLoaderIcon($e:Event):void{
-			Main.mainLoaderIcon.show();
+			trace("show loader icon");
 		}
 		private function _hideLoaderIcon($e:Event):void{
-			Main.mainLoaderIcon.hide();
+			trace("hide loader icon");
 		}
 		
 		public function get parentContainer():DisplayObjectContainer { return _parentContainer; }
