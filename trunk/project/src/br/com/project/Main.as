@@ -1,6 +1,5 @@
 ﻿package br.com.project{
 	
-	import as3classes.ui.loader.LoaderIcon;
 	import br.com.project.data.ServerData;
 	import br.com.project.loader.SaciBulkLoader;
 	import br.com.project.sessions.SessionManager;
@@ -25,11 +24,17 @@
 		static private var _mainLoaderIcon:LoaderIcon;
 		
 		public var listenerManager:ListenerManager;
-		public var siteRoot:SaciSprite;
 		public var console:Console;
 		public var bpc:int = 0;
 		public var sessionManager:SessionManager;
 		public var serverData:ServerData;
+		
+		public var siteRoot:SaciSprite;		
+		public var layerBackground:SaciSprite;
+		public var layerContent:SaciSprite;
+		public var layerBlocker:SaciSprite;
+		public var layerAlert:SaciSprite;
+		public var layerConsole:SaciSprite;
 		
 		public function Main():void {
 			if (stage) init();
@@ -67,8 +72,8 @@
 			 */
 			serverData = ServerData.getInstance();
 			serverData.mockData = { 
-				root: "./",
-				sessions: "{root}sessions.xml",
+				root: "../",
+				sessions: "{root}xml/sessions.xml",
 				swfPath: "{root}swf/"
 			};
 			listenerManager.addEventListener(serverData, Event.COMPLETE, _onGetServerData);
@@ -80,10 +85,25 @@
 			_mainLoaderIcon = new LoaderIcon(this, new lib_standardLoader(), null, new Point(stage.stageWidth/2, stage.stageHeight/2));
 			
 			/**
+			 * Layers
+			 */
+			layerBackground = new SaciSprite();
+			layerContent = new SaciSprite();
+			layerBlocker = new SaciSprite();
+			layerAlert = new SaciSprite();
+			layerConsole = new SaciSprite();
+			
+			siteRoot.addChild(layerBackground);
+			siteRoot.addChild(layerContent);
+			siteRoot.addChild(layerBlocker);
+			siteRoot.addChild(layerAlert);
+			siteRoot.addChild(layerConsole);
+			
+			/**
 			 * Console
 			 */
 			console = new Console();
-			addChild(console);
+			layerConsole.addChild(console);
 
 			/**
 			 * Logger
