@@ -70,7 +70,7 @@
 			serverData = ServerData.getInstance();
 			serverData.mockData = { 
 				root: "../",
-				sessions: "{root}xml/sessions.xml",
+				sessions: "{root}config/sessions.xml",
 				swfPath: "{root}swf/",
 				imgPath: "{root}img/"
 			};
