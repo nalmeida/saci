@@ -3,6 +3,15 @@
 		<namespace value="br.com.project.ui.sessions.session1" />
 		<carneiro value="marcelão miranda carneiro" />
 	</global>
+	
+	<base>
+		<dependencies>
+			<item id="movieclipbase" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+		</dependencies>
+		<params>
+		</params>
+	</base>
+	
 	<sessions useDeeplink="true" defaultSessionId="session2">
 
 		<session id="session1" deeplink="/session1/" className="{namespace}.Session1">
