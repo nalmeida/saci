@@ -1,9 +1,9 @@
 ﻿package saci.ui {
 	
-	import flash.display.Sprite;
-	import flash.events.MouseEvent;
+	import flash.text.*;
+	import flash.display.*;
+	import flash.events.*;
 	import flash.geom.Rectangle;
-	import flash.display.DisplayObjectContainer;
 	
 	/**
 	 * Classe para adicionar de maneira fácil eventos básicos de botão (click, over e out). Extende SaciMovieClip.
