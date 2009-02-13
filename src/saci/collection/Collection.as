@@ -6,7 +6,7 @@
 	* @example Criação da classe que extende Collection
 	*	<pre>
 	*	public class CarneiroItemCollection extends Collection{
-	*		public function AssetManagerItemCollectionVO(...$itens) {
+	*		public function CarneiroItemCollection(...$itens) {
 	*			_itemType = CarneiroItem; // define a propriedade _itemType com a classe cujo elementos do array deverão ser
 	*			super($itens);
 	*		}
@@ -44,20 +44,18 @@
 		* Cria uma nova coleção (para substituir o array de loose-object). Não pode ser construída sem definir o _itemType com a Classe dos itens do array.
 		* @param	...$itens
 		*/
-		public function Collection(...$itens) {
+		public function Collection($itens:Array) {
 			
 			if (_itemType == null){
 				throw new Error(this + " ERROR: ItemCollectionVO cannot be instantiated directly. There must be a class to extend it, defining the _itemType with a Class to 'strong-type' it");
 			}
 			
 			var i:int;
-			if($itens.length != 1 && $itens[0] != ""){
-				for (i = 0; i < $itens.length; i++) {
-					if ($itens[i] is _itemType) {
-						_itens.push($itens[i]);
-					}else {
-						Logger.logWarning(this+".constructor "+_itemType+" is not a invalid type to be added in this collection. Ignoring item.");
-					}
+			for (i = 0; i < $itens.length; i++) {
+				if (_verifyValidType($itens[i]) === true) {
+					_itens.push($itens[i]);
+				}else {
+					Logger.logWarning($itens[i]+" is not the same type as \""+_itemType+"\" and will not be added in this collection.");
 				}
 			}
 		}
@@ -98,14 +96,14 @@
 				throw new Error(this + ".addItem " + _itemType + " is not a invalid type to be added in this collection. Ignoring item.");
 				return;
 			}
-			if(_verifyExistingItem($item) === false){
+			if(has($item) === false){
 				if ($index < 0) {
 					_itens.push($item);
 				}else{
 					_itens.splice($index, 0, $item);
 				}
 			}else {
-				Logger.logWarning(this + "._verifyExistingItem Instance of "+_itemType+" already added.");
+				Logger.logWarning(this + ".has Instance of "+_itemType+" already added.");
 			}
 		}
 		
@@ -141,7 +139,7 @@
 		* @param	$item
 		* @return
 		*/
-		protected function _verifyExistingItem($item:Object):Boolean {
+		public function has($item:Object):Boolean {
 			var i:int;
 			for (i = 0; i < _itens.length; i++) {
 				if (_itens[i] === $item) {
