@@ -21,16 +21,16 @@
 		
 		protected var _listenerManager:ListenerManager;
 		
-		private var _mouseEnabledState:Boolean;
-		private var _mouseChildrenState:Boolean;
-		private var _enabled:Boolean;
+		private var _mouseEnabledState:Boolean = true;
+		private var _mouseChildrenState:Boolean = true;
+		private var _enabled:Boolean = true;
 		
 		/**
 		 * Cria uma nova instancia de SaciSprite.
 		 */
 		public function SaciSprite() {
 			super();
-			mouseChildrenState = mouseEnabledState = true
+			_mouseChildrenState = _mouseEnabledState = true
 			_listenerManager = ListenerManager.getInstance();
 		}
 		
@@ -38,8 +38,8 @@
 		 * Habilita o mouseChildren e o mouseEnabled para o estado em que estavam.
 		 */
 		public function enable():void {
-			mouseChildren = mouseChildrenState;
-			mouseEnabled = mouseEnabledState;
+			mouseChildren = _mouseChildrenState;
+			mouseEnabled = _mouseEnabledState;
 			_enabled = true;
 		}
 		
@@ -105,24 +105,6 @@
 				parent.removeChild(this);
 			
 			return true;
-		}
-		
-		/* SET & GET */
-		
-		public function set mouseEnabledState(value:Boolean):void{
-			_mouseEnabledState = value;
-		}
-		
-		public function get mouseEnabledState():Boolean{
-			return _mouseEnabledState;
-		}
-		
-		public function get mouseChildrenState():Boolean{
-			return _mouseChildrenState;
-		}
-		
-		public function set mouseChildrenState(value:Boolean):void{
-			_mouseChildrenState = value;
 		}
 		
 		

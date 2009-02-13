@@ -19,12 +19,6 @@
 		
 		function get enabled():Boolean
 		
-		function get mouseEnabledState():Boolean
-		function set mouseEnabledState(value:Boolean):void 
-		
-		function get mouseChildrenState():Boolean
-		function set mouseChildrenState(value:Boolean):void 
-		
 	}
 	
 }
