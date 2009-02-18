@@ -5,35 +5,51 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Pires de Almeida
 	 * @version 0.1
 	 * @since 4/2/2009 22:16
-	 * @see br.com.project.sessions.collections.DependencyItemVO
-	 * @see br.com.project.sessions.collections.DependencyItemVOCollection
-	 * @see br.com.project.sessions.collections.SessionCollection
-	 * @see br.com.project.sessions.Session
-	 * @see br.com.project.sessions.SessionManager
+     * @see br.com.project.sessions.collections.DependencyItemVO
+     * @see br.com.project.sessions.collections.DependencyItemVOCollection
+     * @see br.com.project.sessions.collections.SessionCollection
+     * @see br.com.project.sessions.Session
+     * @see br.com.project.sessions.SessionManager
 	 */
 	
-	import br.com.project.sessions.collections.DependencyItemVOCollection;
+    import br.com.project.sessions.collections.DependencyItemVOCollection;
 	
 	public class SessionInfoVO{
 		
 		private var _id:String;
 		private var _deeplink:String;
 		private var _className:String;
-		private var _initMethod:String;
+		private var _isContent:Boolean;
+		private var _redirectId:String;
+		private var _overlay:Boolean;
 		private var _dependencies:DependencyItemVOCollection;
 		private var _xmlSession:XML;
 		private var _xmlParams:XMLList;
 		private var _parent:SessionInfoVO;
 		
-		public function SessionInfoVO($id:String, $deeplink:String, $className:String, $initMethod:String, $dependencies:DependencyItemVOCollection, $xmlSession:XML, $xmlParams:XMLList, $parent:SessionInfoVO) {
+		public function SessionInfoVO(
+			$id:String,
+			$deeplink:String,
+			$className:String,
+			$isContent:Boolean,
+			$redirectId:String,
+			$overlay:String,
+			$dependencies:DependencyItemVOCollection,
+			$xmlSession:XML,
+			$xmlParams:XMLList,
+			$parent:SessionInfoVO
+		) {
 			_id = $id;
-			_className = $className;
-			_initMethod = $initMethod;
+			_deeplink = $deeplink;
+			_className = ($className == "") ? null : $className;
+			_isContent = $isContent;
+			_redirectId = ($redirectId == "") ? null : $redirectId;
+			_overlay = ($overlay == "true");
 			_dependencies = $dependencies;
 			_xmlSession = $xmlSession;
 			_xmlParams = $xmlParams;
 			_parent = $parent;
-			_deeplink = $deeplink;
+
 			// ajusta as barras do deeplink
 			_normalizeDeepLink();
 		}
@@ -50,7 +66,7 @@
 		}
 		
 		public function toString():String {
-			return "[SessionInfoVO] id: " + id + "; deeplink: " + deeplink + "; className: " + className + "; dependencies: " + dependencies + "; xmlSession: " + xmlSession + "; parent: " + parent + "; ";
+			return "[SessionInfoVO] id: " + id + "; deeplink: " + deeplink + "; className: " + className + "; dependencies: " + dependencies + "; xmlSession: " + xmlSession + "; parent: " + parent + "; isContent:" + isContent + "; redirectId: " + redirectId + "; overlay: " + overlay;
 		}
 		
 		/**
@@ -92,6 +108,21 @@
 		 * No caso de sub-seção, é o "pai"
 		 */
 		public function get parent():SessionInfoVO { return _parent; }
+		
+		/**
+		 * Se vai ser tratada como uma dependência, ou seja, se o pai só irá se mostrar quando a seção se carregar
+		 */
+		public function get isContent():Boolean { return _isContent; }
+		
+		/**
+		 * Redireciona para a seção com este id
+		 */
+		public function get redirectId():String { return _redirectId; }
+		
+		/**
+		 * Se fica por cima de outras seções (se não fecha outras seções quando é chamado)
+		 */
+		public function get overlay():Boolean { return _overlay; }
 
 	}
 }

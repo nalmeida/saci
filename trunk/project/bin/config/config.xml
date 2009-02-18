@@ -1,88 +1,88 @@
 ﻿<root>
 	<global>
-		<namespace value="br.com.project.ui.sessions.session1" />
-		<carneiro value="marcelão miranda carneiro" />
+		<namespace value="br.com.project.ui.sessions" />
 	</global>
 	
 	<base>
 		<dependencies>
-			<item id="movieclipbase" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+			<item name="movieclipbase" value="{swfPath}base.swf" />
+			<!-- <item name="fonts" value="{swfPath}fonts.swf" /> -->
+			<item name="config" value="{configPath}base.txt" />
 		</dependencies>
 		<params>
+			<linkage id="bg" value="lib_square" />
+			<linkage id="helveticaBlack" value="lib_HelveticaNeueBlackExt" />
+			<linkage id="helveticaBlackItalic" value="lib_HelveticaNeueBlackExtItalic" />
 		</params>
 	</base>
 	
-	<sessions useDeeplink="true" defaultSessionId="session2">
+	<sessions useDeeplink="true" defaultSessionId="subArea4">
 
-		<session id="session1" deeplink="/session1/" className="{namespace}.Session1">
+		<session id="session1" deeplink="/session1/" className="{namespace}.session1.Session1">
 			<dependencies>
-				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
-				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
-				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
-				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
-				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
-				<!-- <item id="outro_video" value="caminho.flv" type="video" weight="49349" version="2.1.2.1"/>
-				<item id="outro_som" value="{root}caminho.mp3" type="sound" weight="37085"/>
-				<item id="outro_xml" value="caminho.xml" type="xml" weight="100"/>
-				<item id="outro_txt" value="caminho.txt" type="txt" weight="100"/> -->
+				<item name="holder" value="{swfPath}session1.swf" />
 			</dependencies>
 			<params>
-				<linkage id="movieclip1" value="lib_session1"/>
+				<linkage id="session" value="lib_session" />
 			</params>
 		</session>
-		<session id="session2" deeplink="/session2/" className="{namespace}.Session1">
+		<session id="session2" deeplink="/session2/" className="{namespace}.session1.Session1"> <!-- overlay="true" -->
 			<dependencies>
-				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
-				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
-				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
-				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
-				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+				<item name="holder" value="{swfPath}session2.swf" />
 			</dependencies>
 			<params>
-				<linkage id="movieclip1" value="lib_session1" deds="{namespace}"/>
+				<linkage id="session" value="lib_session" />
+			</params>
+		</session>
+		<session id="session3" deeplink="/session3/" className="{namespace}.session3.Session3" redirect="subArea1">
+			<dependencies>
+				<item name="holder" value="{swfPath}session3.swf" />
+			</dependencies>
+			<params>
+				<linkage id="session" value="lib_session" />
+				<linkage id="thumbOver" value="lib_thumb_over" />
 			</params>
 			
-			<session id="sub-area1" deeplink="sub-area1" className="{namespace}.Session1" >
+			<!-- itens de uma seção (interações relacionadas a um deeplink), cada tag, adiciona um deeplink na navigation -->
+			<content id="subArea1" deeplink="sub-area1" className="{namespace}.session3.Item" >
 				<dependencies>
-					<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
-					<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
-					<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
-					<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
-					<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+					<item name="imagem" value="{imgPath}imagem1.jpg" />
 				</dependencies>
 				<params>
-					<linkage id="movieclip1" value="lib_session1" />
+					<address id="destination" value="/session3/sub-area1/" />
 				</params>
-			</session>
-			<session id="sub-area2" deeplink="/sub-area2" className="{namespace}.Session1" >
+			</content>
+			<content id="subArea2" deeplink="sub-area2" className="{namespace}.session3.Item" >
 				<dependencies>
-					<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
-					<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
-					<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
-					<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
-					<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" version="1"/>
+					<item name="imagem" value="{imgPath}imagem2.jpg" />
 				</dependencies>
 				<params>
-					<linkage id="movieclip1" value="lib_session1" />
+					<address id="destination" value="/session3/sub-area2/" />
 				</params>
-				<session id="sub-sub-area1" deeplink="/sub-sub-area1" className="{namespace}.Session1" >
-					<dependencies>
-						<item id="outro_swf" value="caminho.swf" type="movieclip"/>
-					</dependencies>
-				</session>
-			</session>
-		</session>
-		<session id="session3" deeplink="/session3/" className="br.com.project.ui.sessions.session1.Session1">
-			<dependencies>
-				<item id="imagem1" value="{imgPath}imagem1.jpg" type="image" weight="489304" version="1"/>
-				<item id="imagem2" value="{imgPath}imagem2.jpg" type="image" weight="2764800" version="1"/>
-				<item id="imagem3" value="{imgPath}imagem3.jpg" type="image" version="1"/>
-				<item id="imagem4" value="{imgPath}imagem4.jpg" type="image" version="1"/>
-				<item id="movieclip1" value="{swfPath}session1.swf" type="movieclip" weight="100" version="1"/>
-			</dependencies>
-			<params>
-				<linkage id="movieclip1" value="lib_session1" />
-			</params>
+			</content>
+			<content id="subArea3" deeplink="sub-area3" className="{namespace}.session3.Item" >
+				<dependencies>
+					<item name="imagem" value="{imgPath}imagem3.jpg" />
+				</dependencies>
+				<params>
+					<address id="destination" value="/session3/sub-area3/" />
+				</params>
+			</content>
+			<content id="subArea4" deeplink="sub-area4" className="{namespace}.session3.Item" >
+				<dependencies>
+					<item name="imagem" value="{imgPath}imagem4.jpg" />
+				</dependencies>
+				<params>
+					<address id="destination" value="/session3/sub-area4/" />
+				</params>
+			</content>
+			
+			<!-- apenas redirects, não cria histórico e não manda pro analytics -->
+			<content id="subAreaRedirect1" deeplink="subarea1" redirect="subArea1" />
+			<content id="subAreaRedirect2" deeplink="subarea2" redirect="subArea2" />
+			<content id="subAreaRedirect3" deeplink="subarea3" redirect="subArea3" />
+			<content id="subAreaRedirect4" deeplink="subarea4" redirect="subArea4" />
+
 		</session>
 	</sessions>
 </root>

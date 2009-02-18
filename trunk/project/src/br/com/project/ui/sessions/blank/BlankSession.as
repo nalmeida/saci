@@ -24,7 +24,6 @@
 	public class BlankSession extends Session{
 		
 		protected var _parentContainer:DisplayObjectContainer;
-		private var libTransition:SaciMovieClip;
 		
 		public function BlankSession($info:SessionInfoVO) {
 			// define onde a seção será adicionada
@@ -39,7 +38,7 @@
 		}
 		
 		private function _loadError($e:ErrorEvent):void {
-			Logger.logError("[Session1._loadError] error loading session \""+info.id+"\"");
+			Logger.logError("[BlankSession._loadError] error loading session \""+info.id+"\"");
 		}
 		private function _onCompleteBuild($e:Event):void {
 			_listenerManager.removeEventListener(this, Session.COMPLETE_BUILD, _onCompleteBuild);
@@ -58,6 +57,19 @@
 		}
 		private function _hideLoaderIcon($e:Event):void{
 			trace("hide loader icon");
+		}
+
+		override public function show():void {
+			if (parent == null) {
+				_parentContainer.addChild(this);
+			}
+			super.show();
+		}
+		override public function hide():void {
+			if (parent != null) {
+				parent.removeChild(this);
+			}
+			super.hide();
 		}
 		
 		public function get parentContainer():DisplayObjectContainer { return _parentContainer; }
