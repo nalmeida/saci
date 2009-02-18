@@ -1,10 +1,10 @@
-﻿package br.com.project.ui.sessions.session3 {
+﻿package br.com.project.example.ui.sessions.session3 {
 	
 	/**
     * @author Marcelo Miranda Carneiro
 	*/
 	
-	import br.com.project.data.sessions.ProjectSessionParams;
+	import br.com.project.example.data.sessions.ProjectSessionParams;
 	import br.com.project.sessions.Session;
 	import br.com.project.sessions.vo.SessionInfoVO;
 	import flash.display.DisplayObjectContainer;
@@ -28,15 +28,15 @@
 			_params = new ProjectSessionParams(info.xmlParams);
 		}
 		
-		public function build($container:SaciMovieClip, $over:SaciMovieClip):void {
+		public function build($container:SaciMovieClip, $over:SaciMovieClip, $textField:TextField):void {
+			
 			_container = $container;
+			
 			_thumbContainer = _container.getChildByName("thumbContainer") as DisplayObjectContainer;
 			_thumbContainer.removeChildAt(0);
 			_thumbContainer.addChild(_loader.bulk.getBitmap(info.id + ".imagem"));
 			
-			_textField = _container.parent.parent.getChildByName("fldSelectedSubSession") as TextField;
-			//_textField.defaultTextFormat = new TextFormat(FontManager.get("helvetica").hasBold, 14, 0xD60101, null, true);
-			//_textField.embedFonts = true;
+			_textField = $textField;
 			
 			_over = $over;
 			_over.stop();

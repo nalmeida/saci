@@ -1,4 +1,4 @@
-﻿package br.com.project.data.sessions {
+﻿package br.com.project.example.data.sessions {
 	
 	/**
     * @author Marcelo Miranda Carneiro
