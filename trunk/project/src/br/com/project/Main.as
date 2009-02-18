@@ -4,10 +4,10 @@
 	import br.com.project.data.ServerData;
 	import br.com.project.sessions.Base;
 	import br.com.project.sessions.SessionManager;
-	import br.com.project.ui.sessions.session1.Session1;
-	import br.com.project.ui.sessions.session3.Item;
-	import br.com.project.ui.sessions.session3.Session3;
-	import br.com.project.ui.SiteStructure;
+	import br.com.project.example.ui.sessions.session1.Session1;
+	import br.com.project.example.ui.sessions.session3.Item;
+	import br.com.project.example.ui.sessions.session3.Session3;
+	import br.com.project.example.ui.SiteStructure;
 	import flash.events.Event;
 	import saci.events.ListenerManager;
 	import saci.uicomponents.Console;
@@ -104,6 +104,8 @@
 			 */
 			_serverData.loadDataFromJs("getObj", mockData);
 			
+			_listenerManager.addEventListener(stage, Event.RESIZE, _onResizeStage);
+			
 		}
 		
 		private function _onGetServerData(e:Event):void {
@@ -133,9 +135,9 @@
 		static public function get layerAlert():SaciSprite { return _layerAlert; }
 		static public function get layerConsole():SaciSprite { return _layerConsole; }
 		
-		//private function _onResizeStage(e:Event):void{
-			//trace(e);
-		//}
+		private function _onResizeStage(e:Event):void{
+			SiteStructure.update();
+		}
 	}
 }
 

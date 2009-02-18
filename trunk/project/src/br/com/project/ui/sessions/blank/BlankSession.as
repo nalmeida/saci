@@ -33,6 +33,8 @@
 			
 			_listenerManager.addEventListener(this, Session.COMPLETE_BUILD, _onCompleteBuild);
 			_listenerManager.addEventListener(_loader.bulk, ErrorEvent.ERROR, _loadError);
+			_listenerManager.addEventListener(this, Session.ON_ACTIVE, _onActive);
+			_listenerManager.addEventListener(this, Session.ON_DEACTIVE, _onDective);
 			_listenerManager.addEventListener(_loader, SaciBulkLoader.SHOW_LOADER, _showLoaderIcon);
 			_listenerManager.addEventListener(_loader, SaciBulkLoader.HIDE_LOADER, _hideLoaderIcon);
 		}
@@ -52,13 +54,25 @@
 			_startTransition();
 		}
 		
+		//{ active / deactive
+		private function _onActive($e:Event):void{
+			trace("active me!");
+		}
+		private function _onDective($e:Event):void{
+			trace("deactive me!");
+		}
+		//}
+		
+		//{ loader icon
 		private function _showLoaderIcon($e:Event):void{
 			trace("show loader icon");
 		}
 		private function _hideLoaderIcon($e:Event):void{
 			trace("hide loader icon");
 		}
-
+		//}
+		
+		//{ show / hide
 		override public function show():void {
 			if (parent == null) {
 				_parentContainer.addChild(this);
@@ -71,6 +85,7 @@
 			}
 			super.hide();
 		}
+		//}
 		
 		public function get parentContainer():DisplayObjectContainer { return _parentContainer; }
 

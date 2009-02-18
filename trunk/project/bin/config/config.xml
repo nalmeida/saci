@@ -1,12 +1,12 @@
 ﻿<root>
 	<global>
-		<namespace value="br.com.project.ui.sessions" />
+		<namespace value="br.com.project.example.ui.sessions" />
 	</global>
 	
 	<base>
 		<dependencies>
 			<item name="movieclipbase" value="{swfPath}base.swf" />
-			<!-- <item name="fonts" value="{swfPath}fonts.swf" /> -->
+			<item name="fonts" value="{swfPath}fonts.swf" />
 			<item name="config" value="{configPath}base.txt" />
 		</dependencies>
 		<params>
@@ -37,6 +37,7 @@
 		<session id="session3" deeplink="/session3/" className="{namespace}.session3.Session3" redirect="subArea1">
 			<dependencies>
 				<item name="holder" value="{swfPath}session3.swf" />
+				<item name="config" value="{configPath}session3.txt" />
 			</dependencies>
 			<params>
 				<linkage id="session" value="lib_session" />

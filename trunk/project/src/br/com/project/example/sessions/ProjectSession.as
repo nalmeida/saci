@@ -1,10 +1,11 @@
-﻿package br.com.project.sessions {
+﻿package br.com.project.example.sessions {
 	
 	/**
     * @author Marcelo Miranda Carneiro
 	*/
 	
-	import br.com.project.data.sessions.ProjectSessionParams;
+	import br.com.project.example.data.sessions.ProjectSessionParams;
+	import br.com.project.sessions.Session;
 	import br.com.project.sessions.vo.SessionInfoVO;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.ErrorEvent;
