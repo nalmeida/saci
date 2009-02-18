@@ -5,13 +5,13 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Almeida
 	 * @version 0.1
 	 * @since 4/2/2009 22:16
-	 * @see br.com.project.sessions.Session
-	 * @see br.com.project.sessions.SessionManager
+     * @see br.com.project.sessions.Session
+     * @see br.com.project.sessions.SessionManager
 	 */
 	
-	import br.com.project.sessions.collections.SessionCollection;
-	import br.com.project.sessions.Session;
-	import br.com.project.sessions.SessionManager;
+    import br.com.project.sessions.collections.SessionCollection;
+    import br.com.project.sessions.Session;
+    import br.com.project.sessions.SessionManager;
 	import com.asual.swfaddress.SWFAddress;
 	import com.asual.swfaddress.SWFAddressEvent;
 	import flash.events.Event;
@@ -60,25 +60,30 @@
 		
 		/**
 		 * Chama uma seção pela SWFAddress.
-		 * @param	$sessionId Id da seção ([Session].info.id)
+		 * @param	$deeplink deeplink da seção ([Session].info.deeplink)
 		 */
-		public function go($sessionId:String):void {
+		public function go($deeplink:String):void {
 			
+			$deeplink = resolveDeepLinkFormat($deeplink);
 			/**
 			 * Se não for um deeplink "válido" não faz nada (comparado pelas seções -- [Session].info.deeplink)
 			 */
-			if (!isValidDeeplink($sessionId)) {
-				Logger.logWarning("[Navigation.go] Ivalid Deeplink: " + $sessionId);
+			if (isValidDeeplink($deeplink) === false || $deeplink == null) {
+				Logger.logWarning("[Navigation.go] Ivalid Deeplink: " + $deeplink);
+				if ($deeplink != _sessionManager.sessionCollection.getById(_sessionManager.defaultSessionID).info.deeplink) {
+					go(_sessionManager.sessionCollection.getById(_sessionManager.defaultSessionID).info.deeplink);
+				}
 				return;
 			}
-			
+
 			/**
 			 * Define as propriedades com currentLink / lastLink (string do deeplink) e currentSession / lastSession (classe Session)
 			 */
-			_lastLink = _currentLink;
 			_lastSession = _currentSession;
-			_currentLink = _sessionManager.sessionCollection.getDeeplinkById($sessionId);
-			_currentSession = _sessionManager.sessionCollection.getById($sessionId);
+			_lastLink = _currentLink;
+
+			_currentLink = (_sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId != null) ? _sessionManager.sessionCollection.getById(_sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId).info.deeplink : $deeplink;
+			_currentSession = _sessionManager.sessionCollection.getByDeeplink(_currentLink);
 			
 			/**
 			 * Para primeira seção, quando na finalização do carregamento for chamar
@@ -100,8 +105,14 @@
 		 * @param	$target
 		 */
 		public function goExternal($deeplink:String, $url:String, $target:String):void {
-			URL.analytics($deeplink);
+
+			sendToAnalytics($deeplink);
 			URL.call($url, $target);
+		}
+		
+		public function sendToAnalytics($deeplink:String):void {
+			Logger.log("Sending to Analytics: " + $deeplink);
+			URL.analytics($deeplink);
 		}
 		
 		/**
@@ -111,11 +122,12 @@
 		private function _onChange(e:SWFAddressEvent):void{
 			if (e.value == "/") return;
 			
-			Logger.log("[Navigation._onChange] value: " + e.value);
+			var value:String = resolveDeepLinkFormat(e.value);
+			Logger.log("[Navigation._onChange] value: " + value);
 			
-			if (_currentLink != e.value) {
-				if (_sessionManager.sessionCollection.getByDeeplink(e.value) != null) {
-					go(_sessionManager.sessionCollection.getByDeeplink(e.value).info.id);
+			if (_currentLink != value) {
+				if (_sessionManager.sessionCollection.getByDeeplink(value) != null) {
+					go(value);
 				}
 			}
 			
@@ -125,10 +137,22 @@
 			 * para ser lançada quando o carregamento e instanciamentofor finalizado.
 			 */
 			if (_sessionManager.isFinished === false) {
-				_sessionManager.defaultSessionAddress = e.value;
+				_sessionManager.defaultSessionAddress = value;
 				return;
 			}
 			_buildSession();
+		}
+		
+		public function resolveDeepLinkFormat($deeplink:String):String {
+			if ($deeplink == null) return "";
+			if ($deeplink.slice(0, 1) != "/") {
+				$deeplink = "/" + $deeplink;
+			}
+			
+			if ($deeplink.slice( -1) != "/") {
+				$deeplink += "/";
+			}
+			return $deeplink;
 		}
 		
 		/**
@@ -136,25 +160,34 @@
 		 */
 		private function _buildSession():void {
 			
+			sendToAnalytics(_currentLink);
+			
 			var sameLevelSessions:SessionCollection = _sessionManager.sessionCollection.getSameLevelById(_currentSession.info.id);
 			var openSessionAfter:Boolean = false;
 			
 			/**
 			 * Se a seção for nula, não faz nada.
 			 */
+			trace("[Navigation._buildSession] _currentSession: " + _currentLink);
 			if (_currentSession != null) {
+				
 				var i:int;
 				/**
 				 * Pega seções do mesmo nível + ativas.
 				 */
 				for (i = 0; i < sameLevelSessions.itens.length; i++) {
-					if (sameLevelSessions.itens[i].active === true && sameLevelSessions.itens[i] != _currentSession) {
+					if(
+						sameLevelSessions.itens[i].active === true
+						&& sameLevelSessions.itens[i] != _currentSession
+						&& sameLevelSessions.itens[i] != _currentSession.parentSession
+						&& _currentSession.info.overlay !== true
+					){
 						openSessionAfter = true;
 						/**
 						 * Adiciona o handler para abrir a seção chamada quando a seção atual for totalmente fechada.
 						 */
 						if (SessionCollection.isSubSection(_lastSession, _currentSession) === true) {
-							_listenerManager.addEventListener(sameLevelSessions.itens[i], Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+							_listenerManager.addEventListener(_lastSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
 						}else {
 							_listenerManager.addEventListener(sameLevelSessions.itens[i].highestParentSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
 						}
@@ -176,16 +209,18 @@
 		 */
 		private function _openAfterTransition($e:Event):void {
 			_listenerManager.removeEventListener($e.target as Session, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
-			_currentSession.open();
+			if (_currentSession.active === false) {
+				_currentSession.open();
+			}
 		}
 		
 		/**
 		 * Verifica se o id passado é uma seção válida.
-		 * @param	$sessionId
+		 * @param	$sessionDeeplink
 		 * @return
 		 */
-		public function isValidDeeplink($sessionId:String):Boolean {
-			var validDeeplink:Session = _sessionManager.sessionCollection.getById($sessionId);
+		public function isValidDeeplink($sessionDeeplink:String):Boolean {
+			var validDeeplink:Session = _sessionManager.sessionCollection.getByDeeplink($sessionDeeplink);
 			return (validDeeplink != null) ? true : false;
 		}
 		

@@ -12,14 +12,14 @@
 	
 	public class DependencyItemVO{
 		
-		private var _id:String;
+		private var _name:String;
 		private var _value:String;
 		private var _type:String;
 		private var _weight:int;
 		private var _version:String;
 		
-		public function DependencyItemVO($id:String, $value:String, $type:String, $weight:int, $version:String) {
-			_id = $id;
+		public function DependencyItemVO($name:String, $value:String, $type:String, $weight:int, $version:String) {
+			_name = $name;
 			_value = $value;
 			_type = $type;
 			_weight = $weight;
@@ -27,13 +27,13 @@
 		}
 		
 		public function toString():String {
-			return "[DependencyItemVO] id: " + id + "; value: " + value + "; type: " + type + "; weight: " + weight + "; " + version + "; ";
+			return "[DependencyItemVO] name: " + name + "; value: " + value + "; type: " + type + "; weight: " + weight + "; " + version + "; ";
 		}
 		
 		/**
 		 * ID da dependência
 		 */
-		public function get id():String { return _id; }
+		public function get name():String { return _name; }
 		
 		/**
 		 * URL da dependência

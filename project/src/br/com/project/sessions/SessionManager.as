@@ -1,12 +1,17 @@
 ﻿package br.com.project.sessions {
 	
-	import br.com.project.data.Config;
+	import br.com.project.data.DependencyParser;
     import br.com.project.data.ServerData;
+	import br.com.project.data.ShortcutParser;
+    import br.com.project.loader.SaciBulkLoader;
     import br.com.project.navigation.Navigation;
     import br.com.project.sessions.collections.DependencyItemVOCollection;
     import br.com.project.sessions.collections.SessionCollection;
     import br.com.project.sessions.vo.DependencyItemVO;
     import br.com.project.sessions.vo.SessionInfoVO;
+	import br.com.stimuli.loading.BulkLoader;
+	import flash.events.ErrorEvent;
+	import flash.events.Event;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.setTimeout;
 	import flash.xml.XMLNode;
@@ -27,6 +32,7 @@
 		/**
 		 * Static stuff (singleton)
 		 */
+		static private const LOADER_ID:String = "sessions-xml";
 		static private var _instance:SessionManager;
 		static private var _allowInstance:Boolean;
        
@@ -41,7 +47,6 @@
 				SessionManager._instance._navigation = Navigation.getInstance();
 				SessionManager._instance._serverData = ServerData.getInstance();
 				SessionManager._instance._listenerManager = ListenerManager.getInstance();
-				SessionManager._instance._config = Config.getInstance();
 			}
 			return SessionManager._instance;
 		}
@@ -52,12 +57,12 @@
 		private var _listenerManager:ListenerManager;
 		private var _navigation:Navigation;
 		private var _serverData:ServerData;
-		private var _config:Config;
         
 		private var _xml:XML;
 		private var _isFinished:Boolean = false;
 
-		private var _shortcuts:Object;
+		private var _shortcuts:Object = {};
+		private var _defaultSessionID:String;
 		private var _defaultSessionAddress:String;
 		private var _useDeeplink:Boolean; //TODOFBIZ: --- [SessionManager._useDeeplink] implementar a useDeepLink
 		private var _sessionCollection:SessionCollection;
@@ -72,27 +77,48 @@
 		 * Lê os dados do XML e instancia as seções.
 		 * @param	$xml
 		 */
-		public function parseXml():void {
+		public function parseXML($xml:XML, $shortcuts:Object):void {
 			
-			_xml = _config.xml;
-			_shortcuts = _config.shortcuts;
+			if ($xml == null) {
+				throw new Error("[SessionManager._parseXml] ERROR: XML não está definido.");
+				return;
+			}
+			
+			_shortcuts = $shortcuts;
+			_xml = $xml;
+			_useDeeplink = (_xml.sessions.@useDeeplink == "true");
 			
 			/**
 			 * cria as sessions e sub-sessions
 			 */
 			var i:int;
-			for (i = 0; i < xml.sessions[0].session.length(); i++) {
-				_parseSessionsXml(xml.sessions[0].session[i]);
+			 for (i = 0; i < _xml.session.length(); i++) {
+				_parseSessionsXml(_xml.session[i]);
 			}
 			
-			_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(xml.sessions.@defaultSessionId).info.deeplink;
+			/**
+			 * define id da seção inicial (se etiver separado por pipeline,
+			 * "|", usa como separador de array e usa um dos itens como defaultSession);
+			 */
+			_defaultSessionID = _xml.@defaultSessionId;
+			if (_defaultSessionID.split("|").length > 1) {
+				_defaultSessionID = _defaultSessionID.split("|")[Math.round(Math.random() * (_defaultSessionID.split("|").length-1))];
+			}
+			if(_sessionCollection.getById(_defaultSessionID) == null){
+				throw new Error("defaultSessionId não é uma seção válida.");
+				return;
+			} else {
+				_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(_defaultSessionID).info.deeplink;
+			}
 			_isFinished = true;
-			
 		}
 		
-		public function start():void {
+		public function initNavigation():void {
+			/**
+			 * Se já houver algum link sendo chamado pela Navigation, tenta ir direto nele
+			 */
 			if (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) {
-				_navigation.go(_sessionCollection.getByDeeplink(_defaultSessionAddress).info.id);
+				_navigation.go(_sessionCollection.getByDeeplink(_defaultSessionAddress).info.deeplink);
 			}else {
 				throw new Error("Não foi possível encontrar uma seção com o id:" + _defaultSessionAddress);
 			}
@@ -107,25 +133,16 @@
 			
 			var sessionClass:Class;
 			var	session:Session;
-			var dependencies:DependencyItemVOCollection = new DependencyItemVOCollection();
-			var dependencyXml:XML;
-			var i:int;
-			
-			for (i = 0; i < $xml.dependencies.item.length(); i++) {
-				dependencyXml = $xml.dependencies.item[i];
-				dependencies.addItem(new DependencyItemVO(
-					_serverData.parseString(_serverData.parseString(dependencyXml.@id.toString(), _shortcuts)),
-					_serverData.parseString(_serverData.parseString(dependencyXml.@value.toString(), _shortcuts)),
-					_serverData.parseString(_serverData.parseString(dependencyXml.@type.toString(), _shortcuts)),
-					int(_serverData.parseString(_serverData.parseString(dependencyXml.@weight.toString(), _shortcuts))),
-					_serverData.parseString(_serverData.parseString(dependencyXml.@version.toString(), _shortcuts))
-				));
-			}
+			var dependencies:DependencyItemVOCollection = DependencyParser.parseXML($xml.dependencies[0], _shortcuts);
 
-			sessionClass = getDefinitionByName(_serverData.parseString(_serverData.parseString($xml.@className.toString(), _shortcuts))) as Class;
-			if ((sessionClass as Session) is Session) {
-				throw new Error("A classe passada na seção \""+$xml.@id.toString()+"\" deve extender \"Session\".");
-				return;
+			if ($xml.@className.toString() == "") {
+				sessionClass = Session;
+			}else{
+				sessionClass = getDefinitionByName(_serverData.parseString(_serverData.parseString($xml.@className.toString(), _shortcuts))) as Class;
+				if ((sessionClass as Session) is Session) {
+					throw new Error("A classe passada na seção \""+$xml.@id.toString()+"\" deve extender \"Session\".");
+					return;
+				}
 			}
 			
 			// register sessions
@@ -133,7 +150,9 @@
 				_serverData.parseString(_serverData.parseString($xml.@id.toString(), _shortcuts)),
 				_serverData.parseString(_serverData.parseString($xml.@deeplink.toString(), _shortcuts)),
 				_serverData.parseString(_serverData.parseString($xml.@className.toString(), _shortcuts)),
-				_serverData.parseString(_serverData.parseString($xml.@initMethod.toString(), _shortcuts)),
+				($xml.name().toString() == "content"),
+				_serverData.parseString(_serverData.parseString($xml.@redirect.toString(), _shortcuts)),
+				_serverData.parseString(_serverData.parseString($xml.@overlay.toString(), _shortcuts)),
 				dependencies,
 				$xml,
 				new XMLList(_serverData.parseString(_serverData.parseString($xml.params.toString(), _shortcuts))),
@@ -149,14 +168,13 @@
 			/**
 			 * Recursão para sub-sessions
 			 */
+			var i:int;
 			for (i = 0; i < $xml.session.length(); i++) {
 				_parseSessionsXml($xml.session[i], session.info);
 			}
-			
-			session = null;
-			dependencies = null;
-			dependencyXml = null;
-			i = NaN;
+			for (i = 0; i < $xml.content.length(); i++) {
+				_parseSessionsXml($xml.content[i], session.info);
+			}
 		}
 		
 		public function get useDeeplink():Boolean { return _useDeeplink; }
@@ -171,6 +189,12 @@
 		public function set defaultSessionAddress(value:String):void {
 			_defaultSessionAddress = value;
 		}
+
+		/**
+		 * Seção principal, vinda do XML
+		 */
+		public function get defaultSessionID():String { return _defaultSessionID; }
+		
 		/**
 		 * XML original com as configurações das seções.
 		 */
@@ -185,6 +209,7 @@
 		 * Se terminou de instanciar as seções
 		 */
 		public function get isFinished():Boolean { return _isFinished; }
+		
 	}
 }
 

@@ -2,11 +2,15 @@
 	
 	import br.com.project.data.Config;
 	import br.com.project.data.ServerData;
+	import br.com.project.sessions.Base;
 	import br.com.project.sessions.SessionManager;
 	import br.com.project.ui.sessions.session1.Session1;
+	import br.com.project.ui.sessions.session3.Item;
+	import br.com.project.ui.sessions.session3.Session3;
+	import br.com.project.ui.SiteStructure;
 	import flash.events.Event;
 	import saci.events.ListenerManager;
-	import saci.ui.Console;
+	import saci.uicomponents.Console;
 	import saci.ui.SaciMovieClip;
 	import saci.ui.SaciSprite;
 	import saci.util.DocumentUtil;
@@ -59,7 +63,9 @@
 			 * Register Sessions;
 			 */
 			_sessionManager = SessionManager.getInstance();
+			Item;
 			Session1;
+			Session3;
 			
 			/**
 			 * Document
@@ -71,14 +77,14 @@
 			 * ServerData
 			 */
 			_serverData = ServerData.getInstance();
-			_serverData.mockData = { 
+			var mockData:Object = { 
 				root: "../",
-				config: "{root}config/config.xml",
+				configPath: "{root}config/",
+				config: "{configPath}config.xml",
 				swfPath: "{root}swf/",
 				imgPath: "{root}img/"
 			};
 			_listenerManager.addEventListener(_serverData, Event.COMPLETE, _onGetServerData);
-			_serverData.loadDataFromJs("getObj");
 			
 			/**
 			 * Console
@@ -96,7 +102,7 @@
 			/**
 			 * Load Data
 			 */
-			_serverData.loadDataFromJs("getObj");
+			_serverData.loadDataFromJs("getObj", mockData);
 			
 		}
 		
@@ -110,18 +116,15 @@
 			_config = Config.getInstance();
 			_listenerManager.addEventListener(_config, Event.COMPLETE, _buildScreen);
 			
-			_config.load(_serverData.get("config"));
+			_config.loadDataFromXML(_serverData.get("config"));
 		}
 		
 		private function _buildScreen(e:Event):void {
 			_listenerManager.removeAllEventListeners(_config);
 			
 			// monta a estrutura do site
-			
-			/**
-			 * Monta a "defaultSessionId" na tela
-			 */
-			_sessionManager.start();
+			SiteStructure.init(_layerBackground, Base.getInstance());
+			_sessionManager.initNavigation();
 		}
 		
 		static public function get layerBackground():SaciSprite { return _layerBackground; }

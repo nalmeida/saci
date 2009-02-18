@@ -11,9 +11,12 @@
 	 */
 	
 	import br.com.project.sessions.Session;
+	import br.com.project.sessions.SessionManager;
 	import saci.collection.Collection;
 	
 	public class SessionCollection extends Collection{
+		
+		static public var _sessionManager:SessionManager = SessionManager.getInstance();
 		
 		/**
 		 * Static stuff
@@ -26,8 +29,8 @@
 		 */
 		static public function isSubSection($item1:Session, $item2:Session):Boolean {
 			if ($item1 == null || $item2 == null) return false;
-			var item1:Array = $item1.info.deeplinkAsArray;
-			var item2:Array = $item2.info.deeplinkAsArray;
+			var item1:Array = ($item1.info.redirectId != null) ? _sessionManager.sessionCollection.getById($item1.info.redirectId).info.deeplinkAsArray : $item1.info.deeplinkAsArray;
+			var item2:Array = ($item2.info.redirectId != null) ? _sessionManager.sessionCollection.getById($item2.info.redirectId).info.deeplinkAsArray : $item2.info.deeplinkAsArray;
 			var counter:int = 0;
 			if (item1.length === item2.length) {
 				var i:int;

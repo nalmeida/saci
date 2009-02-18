@@ -5,15 +5,16 @@
 	 * @author Marcelo Miranda Carneiro | Nicholas Pires de Almeida
 	 * @version 0.1
 	 * @since 4/2/2009 22:16
-	 * @see br.com.project.navigation.Navigation
-	 * @see br.com.project.sessions.SessionManager
+     * @see br.com.lux.navigation.Navigation
+     * @see br.com.lux.sessions.SessionManager
 	 */
 
-	import br.com.project.loader.SaciBulkLoader;
-	import br.com.project.navigation.Navigation;
-	import br.com.project.sessions.collections.SessionCollection;
-	import br.com.project.sessions.vo.DependencyItemVO;
-	import br.com.project.sessions.vo.SessionInfoVO;
+    import br.com.project.loader.SaciBulkLoader;
+    import br.com.project.navigation.Navigation;
+	import br.com.project.sessions.collections.DependencyItemVOCollection;
+    import br.com.project.sessions.collections.SessionCollection;
+    import br.com.project.sessions.vo.DependencyItemVO;
+    import br.com.project.sessions.vo.SessionInfoVO;
 	import br.com.stimuli.loading.BulkLoader;
 	import br.com.stimuli.loading.loadingtypes.LoadingItem;
 	import flash.display.DisplayObjectContainer;
@@ -30,9 +31,13 @@
 		/**
 		 * Static stuff
 		 */
+		static public const START_TRANSTITION:String = "startTransition";
+		static public const END_TRANSTITION:String = "endTransition";
 		static public const COMPLETE_START_TRANSTITION:String = "completeStartTransition";
 		static public const COMPLETE_END_TRANSTITION:String = "completeEndTransition";
 		static public const COMPLETE_BUILD:String = "completeBuild";
+		static public const ON_ACTIVE:String = "onActive";
+		static public const ON_DEACTIVE:String = "onDeactive";
 		
 		static private var _instances:Array = [];
 		
@@ -69,14 +74,14 @@
 		/**
 		 * Dynamic stuff
 		 */
-		protected var _navigation:Navigation = Navigation.getInstance();
-		protected var _sessionManager:SessionManager = SessionManager.getInstance();
+		protected var _navigation:Navigation;
+		protected var _sessionManager:SessionManager;
 
 		protected var _info:SessionInfoVO;
 		protected var _parentSession:Session;
 		protected var _children:SessionCollection;
-
 		protected var _loader:SaciBulkLoader;
+		
 		protected var _built:Boolean = false;
 		protected var _active:Boolean = false;
 		
@@ -84,34 +89,48 @@
 			Session._instances.push(this);
 			_info = $info;
 			
+			_navigation = Navigation.getInstance();
+			_sessionManager = SessionManager.getInstance();
+			
 			/**
-			 * coleção das sub-seções
+			 * Coleção das sub-seções
 			 */
 			_children = new SessionCollection();
 
-			_loader = new SaciBulkLoader();
-			_listenerManager = ListenerManager.getInstance();
+			/**
+			 * Verifica se é uma sub-seção e se adiciona ao pai
+			 */
+			_parentSession = Session.getByInfo(info.parent);
+			if(_parentSession != null && info.className != null){
+				_parentSession.addSessionChild(this);
+			}
+			
+			/**
+			 * Se for dependencia do pai, usa o loader dele.
+			 */
+			if (info.isContent === true && parentSession != null) {
+				_loader = parentSession._loader;
+			}else {
+				_loader = new SaciBulkLoader();
+			}
 			_listenerManager.addEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
 			_listenerManager.addEventListener(this, COMPLETE_END_TRANSTITION, _deactivate);
-
+			
 			/**
 			 * registra dependencias no processo de loading
 			 */
-			_registerDependencies();
-			
-			/**
-			 * Verifica se é uma sub-seção e se adiciona à seção pai
-			 */
-			_parentSession = Session.getByInfo(info.parent);
-			if(_parentSession != null){
-				_parentSession.addSessionChild(this);
+			if(_parentSession == null){
+				_registerDependencies(info);
 			}
 			
 			hide();
 		}
 		
+		//{ open-load / close
+		
 		/**
 		 * Abre a seção. Caso não esteja carregada, começa o processo carregamento.
+		 * Caso tenha um pai e ele não está aberto / carregado, começa o processo pelo pai (recursivo).
 		 */
 		public function open():void {
 			if (_parentSession != null && _parentSession.active === false) {
@@ -122,7 +141,11 @@
 				_parentSession.open();
 				return;
 			}
+			
 			_active = true;
+			dispatchEvent(new Event(ON_ACTIVE));
+			
+			var i:int;
 			if (loaded === true) {
 				if(_built === true){
 					_startTransition();
@@ -135,7 +158,8 @@
 		}
 		
 		/**
-		 * Para sub-seções, força a abertura do pai antes que o filho se mostre. É chamada do listener da transição de abertura.
+		 * Para sub-seções, força a abertura do pai antes que o filho se mostre.
+		 * É chamada do listener da transição de abertura.
 		 * @param	$e
 		 */
 		protected function _openAfterParent($e:Event):void {
@@ -144,13 +168,15 @@
 		}
 		
 		/**
-		 * Fecha a seção
+		 * Fecha a seção. Se houver filhos que não foram fechados, inicia o
+		 * processo de fechamento recursivo
 		 */
 		public function close():void {
+			//TODOFBIZ: --- [Session.close] verificar se a completeStartTransition foi disparada para evitar o erro de animação na timeline
 			if (_listenerManager.hasEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter) === true) {
 				_listenerManager.removeEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
 			}
-			if (loaded == true) {
+			if (loaded === true) {
 				if (children.hasActive() === true)
 					return;
 				if (_parentSession != null && _navigation.currentSession != _parentSession) {
@@ -163,22 +189,45 @@
 		}
 		
 		/**
-		 * Para sub-seções, força o fechamento do pai depois do filho, mantendo a ordem correta das transições. É chamada do listener da transição de fechamento.
-		 * @param	$e
+		 * Evento disparado pelo método "close" quando a seção contém um pai.
+		 * @private
 		 */
-		protected function _closeParentAfter($e:Event):void {
+		private function _closeParentAfter($e:Event):void {
 			_listenerManager.removeEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
 			_parentSession.close();
 		}
-
+		
 		/**
 		 * "Desativa" a seção. É chamada no listener da transição de fechamento
-		 * @param	$e
+		 * @private
 		 */
 		private function _deactivate($e:Event):void {
 			_active = false;
+			dispatchEvent(new Event(ON_DEACTIVE));
 			hide();
 		}
+		
+		/**
+		 * Término do carregamento.
+		 * @private
+		 */
+		private function _onLoadComplete($e:Event):void {
+			_listenerManager.removeEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
+			_build();
+		}
+		
+		/**
+		 * Constrói a sessão. Despacha um evento (COMPLETE_BUILD).
+		 * @private
+		 */
+		private function _build():void{
+			Logger.log("[Session._build] " + info.id);
+			_built = true;
+			dispatchEvent(new Event(COMPLETE_BUILD));
+		}
+		
+		//}
+		//{ transition
 		
 		/**
 		 * Começa a transição de abertura. A princípio, não existe transição, então só despacha o evento.
@@ -197,51 +246,42 @@
 			dispatchEvent(new Event(COMPLETE_END_TRANSTITION));
 		}
 		
+		//}
+		//{ dependencies / children sessions
+		
 		/**
 		 * Regitra as dependências vindas do XML
+		 * @private
 		 */
-		private function _registerDependencies():void {
+		private function _registerDependencies($info:SessionInfoVO):void {
+			if ($info.dependencies == null) return;
 			var i:int;
 			var dependency:DependencyItemVO;
-			for (i = 0; i < _info.dependencies.itens.length; i++) {
-				dependency = _info.dependencies.itens[i];
+			
+			for (i = 0; i < $info.dependencies.itens.length; i++) {
+				dependency = $info.dependencies.itens[i];
 				_loader.add(dependency.value, {
-					id: dependency.id,
+					id: (($info != info) ? $info.id + "." : "") + dependency.name,
 					weight: dependency.weight
 				});
 			}
 		}
 		
 		/**
-		 * Término do carregamento.
-		 * @param	$e
-		 */
-		private function _onLoadComplete($e:Event):void {
-			_listenerManager.removeEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
-			_build();
-		}
-		
-		/**
-		 * Para início da sessão. Despacha um evento para isso.
-		 */
-		protected function _build():void{
-			Logger.log("[Session._build] " + info.id);
-			_built = true;
-			dispatchEvent(new Event(COMPLETE_BUILD));
-		}
-		
-		/**
 		 * Adiciona um filho (sub-seção) à seção
-		 * @param	$session
+		 * @private
 		 */
 		private function addSessionChild($session:Session):void {
+			if(_children.has($session) === false && $session.info.isContent === true){
+				_registerDependencies($session.info);
+			}
 			_children.addItem($session);
 		}
-		
 		/**
 		 * Destrói todos os listeners e se remove da display list.
 		 */
 		override public function destroy():Boolean {
+			hide();
 			_listenerManager.removeAllEventListeners(_loader.bulk);
 			_listenerManager.removeAllEventListeners(_loader);
 			_children.destroy();
@@ -253,9 +293,11 @@
 					_listenerManager.removeEventListener(_parentSession, COMPLETE_END_TRANSTITION, _closeParentAfter);
 				}
 			}
-			hide();
 			return super.destroy();
 		}
+		
+		//}
+		//{ getters / setters
 		
 		/**
 		 * Dados da seção (vindos do XML).
@@ -300,5 +342,7 @@
 		 * Coleção com os "filhos" (sub-seções).
 		 */
 		public function get children():SessionCollection { return _children; }
+		
+		//}
 	}
 }

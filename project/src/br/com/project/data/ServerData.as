@@ -47,11 +47,15 @@
 		 * Carrega dados do javascript (usando ExternalInterface)
 		 * @param	$functionName Nome da função que retorna um objeto
 		 */
-		public function loadDataFromJs($functionName:String):void {
-			if ((ExternalInterface.available === false && DocumentUtil.isWeb() === true) || ExternalInterface.call($functionName) != null) {
+		public function loadDataFromJs($functionName:String, $mockData:Object):void {
+			
+			//TODOFBIZ: --- [ServerData.loadDataFromJs] USE MOCK FLAG
+			
+			_mockData = $mockData;
+			if (ExternalInterface.available === true && DocumentUtil.isWeb() === true) {
 				_obj = ExternalInterface.call($functionName);
 				isLocal = false;
-			} else {
+			} else{
 				_obj = mockData;
 				isLocal = true
 			}
@@ -64,7 +68,7 @@
 		 * Interpreta um objeto para usar os "shortcuts" presentes nele.
 		 * @param	$obj
 		 * @return Novo objeto com strings substituídas
-		 * @see br.com.project.data.ServerData#parseString
+         * @see br.com.project.data.ServerData#parseString
 		 * @example
 		 * <pre>
 		 * 	// Num objeto
@@ -88,15 +92,54 @@
 		 * Interpreta uma String com base em um Objeto, usando-o como fonte de "shortcuts".
 		 * @param	$value Texto a ser substituído
 		 * @param	$obj Objeto fonte, caso não seja passado, usa-se o objeto definido em ServerData
-		 * @see br.com.project.data.ServerData#parseObject
+         * @see br.com.project.data.ServerData#parseObject
 		 * @return
 		 */
 		public function parseString($value:String, $obj:Object = null):String {
+			
 			$obj = ($obj == null) ? _obj : $obj;
-			var j:String;
-			for(j in $obj){
-				$value = $value.replace(new RegExp("{"+j+"}", "g"), $obj[j]);
+			var values:Array = [];
+			var finalOrder:Array = [];
+			var finalObject:Object = { };
+			var orderRegexp:RegExp = new RegExp("\\{(.[^\\}]*)\\}");
+			var orderRegexpResult:Array;
+			var n:String;
+			
+			// grava shorcuts usados
+			for(n in $obj){
+
+				orderRegexpResult = $obj[n].match(orderRegexp);
+				if (orderRegexpResult != null) {
+					if (orderRegexpResult[1] != null) {
+						if(values.indexOf(orderRegexpResult[1]) < 0){
+							values.push(orderRegexpResult[1]);
+						}
+					}
+				}
 			}
+			
+			// ordena shortcuts
+			var i:int;
+			for (i = 0; i < values.length; i++) {
+				if ($obj[values[i]].match(orderRegexp) != null) {
+					finalOrder.splice(0, 0, values[i]);
+				}else {
+					finalOrder.push(values[i]);
+				}
+			}
+			
+			// substitui itens que usam outros itens
+			for (i = 0; i < finalOrder.length; i++) {
+				for (n in $obj) {
+					$obj[n] = $obj[n].replace(new RegExp("{" + finalOrder[i] + "}", "g"), $obj[finalOrder[i]]);
+				}
+			}
+			
+			// substitui string com base no objeto
+			for (n in $obj) {
+				$value = $value.replace(new RegExp("{" + n + "}", "g"), $obj[n]);
+			}
+			
 			return $value;
 		}
 		
@@ -122,12 +165,9 @@
 		
 		/**
 		 * Dados utilizados caso não seja possível pegar os dados através da loadDataFromJs
-		 * @see br.com.project.data.ServerData#loadDataFromJs
+         * @see br.com.project.data.ServerData#loadDataFromJs
 		 */
 		public function get mockData():Object { return _mockData; }
-		public function set mockData(value:Object):void {
-			_mockData = value;
-		}
 	}
 	
 }
