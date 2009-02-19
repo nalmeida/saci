@@ -85,7 +85,7 @@
 						a[a.length] = "\"";
 						a = [a.join("")];
 					}
-					Logger.log("[URL._run] Running LOCAL. Javascript" + j + "(" + a + ")");
+					Logger.log("[URL._run] Running LOCAL. Javascript: " + j + "(" + a + ")");
 				} else {
 					Logger.log("[URL._run] Running LOCAL. URL: \"" + u + "\" target: \"" + t + "\"");					
 				}
