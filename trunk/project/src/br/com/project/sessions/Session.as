@@ -153,7 +153,11 @@
 					_build();
 				}
 			}else {
-				_loader.start();
+				if (hasDependency === true) {
+					_loader.start();
+				}else {
+					_build();
+				}
 			}
 		}
 		
@@ -317,7 +321,13 @@
 		/**
 		 * Flash indicando que a seção já foi carregada.
 		 */
-		public function get loaded():Boolean { return _loader.bulk.isFinished; }
+		public function get loaded():Boolean {
+			if (hasDependency === true) {
+				return _loader.bulk.isFinished;
+			} else {
+				return true;
+			}
+		}
 		
 		/**
 		 * "Pai" da seção, para os casos de sub-seções.
@@ -342,6 +352,17 @@
 		 * Coleção com os "filhos" (sub-seções).
 		 */
 		public function get children():SessionCollection { return _children; }
+		
+		/**
+		 * Se a seção tem alguma dependência
+		 */
+		public function get hasDependency():Boolean {
+			if (info.dependencies.itens.length > 0) {
+				return true;
+			}else {
+				return false;
+			}
+		}
 		
 		//}
 	}
