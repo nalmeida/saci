@@ -20,8 +20,7 @@
 		 * @return
 		 */
 		public static function getClassFromSwf(externalSwf:DisplayObject, className:String):Class {
-			var tempDispObj:DisplayObject = externalSwf;
-			return (tempDispObj.loaderInfo.applicationDomain.getDefinition(className) as Class);
+			return (externalSwf.loaderInfo.applicationDomain.getDefinition(className) as Class);
 		}
 		
 		/**
