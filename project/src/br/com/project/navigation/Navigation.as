@@ -168,7 +168,6 @@
 			/**
 			 * Se a seção for nula, não faz nada.
 			 */
-			trace("[Navigation._buildSession] _currentSession: " + _currentLink);
 			if (_currentSession != null) {
 				
 				var i:int;
