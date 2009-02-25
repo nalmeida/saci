@@ -1,6 +1,7 @@
 ﻿package saci.util {
 	
 	import flash.display.DisplayObject;
+	import flash.utils.describeType;
 	
 	/**
 	 * Utilidades para Class
@@ -32,6 +33,29 @@
 		public static function cloneClassFromSwf(externalSwf:DisplayObject, className:String):* {
 			return new (getClassFromSwf(externalSwf, className) as Class)();
 		}
+		
+		/**
+		 * Retorna se uma Classe possui um método X
+		 * @param	objClass	Objeto classe
+		 * @param	methodName	Método que se deseja pesquisar
+		 * @return
+		 */
+		public static function methodExists(objClass:Object, methodName:String):Boolean {
+			var desc:XML = flash.utils.describeType(objClass);
+			return (desc.method.(@name == methodName).length() > 0);
+		}
+		
+		/**
+		 * Retorna se uma Classe possui uma propriedade X
+		 * @param	objClass	Objeto classe
+		 * @param	propName	Propriedade que se deseja pesquisar
+		 * @return
+		 */
+		public static function propertyExists(objClass:Object,propName:String):Boolean {
+			var desc:XML=flash.utils.describeType(objClass);
+			return (desc.accessor.(@name == propName).length() > 0);
+		}
+	
 	}
 	
 }
