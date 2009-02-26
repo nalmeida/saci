@@ -20,6 +20,8 @@
 	 */
 	public class SaciMovieClip extends MovieClip implements IDisplayable, IDestroyable, IRemovableEventDispatcher{
 		
+		static public var COMPLETE_REVERSE:String = "completeReverse";
+		
 		protected var _isReversing:Boolean;
 		protected var _listenerManager:ListenerManager;
 		
@@ -113,14 +115,14 @@
 	// Código de CasaReversibleMovieClip de CASA framework (http://as3.casalib.org).
 	//{ region 
 		/**
-			Plays the timeline in reverse from current playhead position.
+			Plays the timeline in reverse from current playhead position. When playhead reaches frame 1, dispatches COMPLETE_REVERSE Event;
 		*/
 		public function playReverse():void {
 			_playInReverse();
 		}
 		
 		/**
-			Sends the playhead to the specified frame on and reverses from that frame.
+			Sends the playhead to the specified frame on and reverses from that frame. When playhead reaches frame 1, dispatches COMPLETE_REVERSE Event;
 			
 			@param frame: A number representing the frame number, or a string representing the label of the frame, to which the playhead is sent.
 		*/
@@ -157,6 +159,9 @@
 			@exclude
 		*/
 		override public function stop():void {
+			if (_isReversing === true && currentFrame == 1) {
+				dispatchEvent(new Event(COMPLETE_REVERSE));
+			}
 			_stopReversing();
 			super.stop();
 		}
