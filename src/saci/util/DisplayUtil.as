@@ -45,6 +45,48 @@
 			}	
 		}
 		
+		/**
+		 * Para todos os movieclips e seus filhos.
+		 * @param	$who
+		 */
+		public static function stopAllChilds($who:DisplayObjectContainer):void {
+			if (!$who.numChildren ) return; 
+			var count:int = $who.numChildren;
+			while( count-- ){
+				var obj:DisplayObject = $who.getChildAt(count);
+				if (obj == null) {
+					continue;
+				}
+				if (obj is MovieClip && MovieClip(obj).totalFrames>1 ){
+					MovieClip(obj).stop();
+				} 
+				if( (obj is DisplayObjectContainer) ) {
+					stopAllChilds( DisplayObjectContainer( obj )  );
+				}
+			}	
+		}
+		
+		/**
+		 * Dá play em todos os movieclips e seus filhos.
+		 * @param	$who
+		 */
+		public static function playAllChilds($who:DisplayObjectContainer):void {
+			if (!$who.numChildren ) return; 
+			var count:int = $who.numChildren;
+			while( count-- ){
+				var obj:DisplayObject = $who.getChildAt(count);
+				if (obj == null) {
+					continue;
+				}
+				if (obj is MovieClip && MovieClip(obj).totalFrames>1 ){
+					MovieClip(obj).play();
+				} 
+				if( (obj is DisplayObjectContainer) ) {
+					playAllChilds( DisplayObjectContainer( obj )  );
+				}
+			}	
+		}
+		
 	}
 	
 }
