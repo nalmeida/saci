@@ -44,11 +44,12 @@
 		* Cria uma nova coleção (para substituir o array de loose-object). Não pode ser construída sem definir o _itemType com a Classe dos itens do array.
 		* @param	...$itens
 		*/
-		public function Collection($itens:Array) {
+		public function Collection($itens:Array = null) {
 			
 			if (_itemType == null){
 				throw new Error(this + " ERROR: ItemCollectionVO cannot be instantiated directly. There must be a class to extend it, defining the _itemType with a Class to 'strong-type' it");
 			}
+			if ($itens == null) return;
 			
 			var i:int;
 			for (i = 0; i < $itens.length; i++) {
