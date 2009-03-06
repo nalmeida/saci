@@ -51,6 +51,7 @@
 		private var _currentSession:Session;
 		private var _lastLink:String;
 		private var _lastSession:Session;
+		private var _redirectId:String;
 
 		public function Navigation():void {
 			if (Navigation._allowInstance !== true) {
@@ -82,6 +83,17 @@
 			_lastSession = _currentSession;
 			_lastLink = _currentLink;
 
+			_redirectId = _sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId;
+			if (_redirectId != null) {
+				if(_sessionManager.sessionCollection.getById(_redirectId) != null){
+					_currentLink = _sessionManager.sessionCollection.getById(_redirectId).info.deeplink;
+				}else {
+					throw new Error("[Navigation.go] \"" + _sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId + "\", chamado na Session \""+_sessionManager.sessionCollection.getByDeeplink($deeplink).info.id+"\" não é um ID válido para redirect.");
+				}
+			}else {
+				_currentLink = $deeplink;
+			}
+			_redirectId = null;
 			_currentLink = (_sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId != null) ? _sessionManager.sessionCollection.getById(_sessionManager.sessionCollection.getByDeeplink($deeplink).info.redirectId).info.deeplink : $deeplink;
 			_currentSession = _sessionManager.sessionCollection.getByDeeplink(_currentLink);
 			

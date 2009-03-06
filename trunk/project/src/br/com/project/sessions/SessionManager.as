@@ -105,7 +105,7 @@
 				_defaultSessionID = _defaultSessionID.split("|")[Math.round(Math.random() * (_defaultSessionID.split("|").length-1))];
 			}
 			if(_sessionCollection.getById(_defaultSessionID) == null){
-				throw new Error("defaultSessionId não é uma seção válida.");
+				throw new Error("defaultSessionId \""+_defaultSessionID+"\" não é uma seção válida.");
 				return;
 			} else {
 				_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(_defaultSessionID).info.deeplink;
