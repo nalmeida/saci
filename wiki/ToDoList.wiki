@@ -7,3 +7,8 @@ Lista de pendências para o módulo
 == Pendências ==
 
   * Possibilidade de carregar um swf num ApplicationDomain diferente do padrão;
+
+== Lista de desejos ==
+
+  * Adicionar um serviço como uma "dependência";
+  * Possibilidade de que cada session tenha um XML separado;
