@@ -10,6 +10,7 @@ Lista de pendências para o módulo
 
 == Lista de desejos ==
 
+  * Implementar as classes de "transform" do Zeh para SaciSprite e SaciMovieclip (http://zehfernando.com/2009/creating-a-movieclip-class-for-designers/) adicionando também o "tint";
   * Adicionar um serviço como uma "dependência";
   * Possibilidade de que cada session tenha um XML separado;
   * Colocar uma "version" ou "cache" em global para somar a todas as requisições;
