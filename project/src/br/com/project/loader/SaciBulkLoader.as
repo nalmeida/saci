@@ -74,10 +74,19 @@
 		}
 		
 		/**
+		 * Pega o item carregado. Herdado da Bulk
+		 * @param	$key
+		 * @return
+		 */
+		public function getContent($key:*):* {
+			return _bulk.getContent($key);
+		}
+		
+		/**
 		 * 
 		 * @param	$connection
 		 */
-		public function start($connection:int = 1):void {
+		public function start($connection:int = -1):void {
 			_bulk.start($connection);
 			_showLoader();
 		}
