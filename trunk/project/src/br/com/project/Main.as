@@ -82,7 +82,9 @@
 				configPath: "{root}config/",
 				config: "{configPath}config.xml",
 				swfPath: "{root}swf/",
-				imgPath: "{root}img/"
+				imgPath: "{root}img/",
+				localePath: "{root}locales/",
+				defaultLocalePath: "{localePath}pt-br/"
 			};
 			_listenerManager.addEventListener(_serverData, Event.COMPLETE, _onGetServerData);
 			

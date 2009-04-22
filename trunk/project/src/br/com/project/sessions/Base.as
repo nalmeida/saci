@@ -13,6 +13,7 @@
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import saci.events.ListenerManager;
+	import saci.locales.Locales;
 	import saci.ui.SaciSprite;
 	
 	public class Base extends EventDispatcher{
@@ -88,6 +89,8 @@
 		 * @private
 		 */
 		private function _onLoadComplete($e:Event):void{
+			/* Parse Locales */
+			Locales.parse(_loader.bulk.getXML("locale"));
 			_listenerManager.removeEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
 			_listenerManager.removeEventListener(_loader.bulk, ErrorEvent.ERROR, _onLoadError);
 			dispatchEvent($e);
