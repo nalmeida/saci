@@ -9,6 +9,7 @@
 	import br.com.project.sessions.vo.SessionInfoVO;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.ErrorEvent;
+	import saci.locales.Locales;
 	import saci.util.DocumentUtil;
 	import saci.util.Logger;
 	
@@ -42,6 +43,13 @@
 		}
 		
 		public function get params():ProjectSessionParams { return _params; }
+		
+		static public function text( p_value:String ) : String
+		{
+			var output:String;
+			output = Locales.getLocale( p_value );
+			return output;
+		}
 		
 	}
 	

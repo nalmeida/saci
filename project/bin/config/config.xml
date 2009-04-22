@@ -8,6 +8,7 @@
 			<item name="movieclipbase" value="{swfPath}base.swf" />
 			<item name="fonts" value="{swfPath}fonts.swf" />
 			<item name="config" value="{configPath}base.txt" />
+			<item name="locale" value="{defaultLocalePath}locale.xml" />
 		</dependencies>
 		<params>
 			<linkage id="bg" value="lib_square" />
