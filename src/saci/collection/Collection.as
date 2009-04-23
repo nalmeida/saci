@@ -46,19 +46,14 @@
 		*/
 		public function Collection($itens:Array = null) {
 			
-			if (_itemType == null){
+			if (_itemType == null)
 				throw new Error(this + " ERROR: ItemCollectionVO cannot be instantiated directly. There must be a class to extend it, defining the _itemType with a Class to 'strong-type' it");
-			}
-			if ($itens == null) return;
 			
-			var i:int;
-			for (i = 0; i < $itens.length; i++) {
-				if (_verifyValidType($itens[i]) === true) {
-					_itens.push($itens[i]);
-				}else {
-					Logger.logWarning($itens[i]+" is not the same type as \""+_itemType+"\" and will not be added in this collection.");
-				}
-			}
+			if ($itens == null)
+				return;
+			
+			for (var i:int = 0; i < $itens.length; i++)
+				addItem($itens[i]);
 		}
 		
 		/**
@@ -70,9 +65,8 @@
 				throw new Error(this + ".removeItem " + _itemType + " is not a invalid type to be removed by this collection. Ignoring item.");
 				return;
 			}
-			if (_itens.indexOf($item) >= 0) {
+			if (_itens.indexOf($item) >= 0)
 				_itens.splice(_itens.indexOf($item), 1);
-			}
 		}
 		
 		/**
@@ -80,11 +74,10 @@
 		* @param	$item
 		*/
 		public function removeItemByIndex($index:int):void {
-			if ($index < _itens.length && $index >= 0) {
+			if ($index < _itens.length && $index >= 0)
 				itens.splice($index, 1);
-			} else {
+			else
 				throw new Error(this + ".removeItem " + _itemType + " is not a invalid type to be removed by this collection. Ignoring item.");
-			}
 		}
 		
 		/**
@@ -98,11 +91,10 @@
 				return;
 			}
 			if(has($item) === false){
-				if ($index < 0) {
-					_itens.push($item);
-				}else{
+				if ($index < 0) 
+					_itens[_itens.length] = $item;
+				else
 					_itens.splice($index, 0, $item);
-				}
 			}else {
 				Logger.logWarning(this + ".has Instance of "+_itemType+" already added.");
 			}
@@ -113,12 +105,9 @@
 		* @param	$item
 		*/
 		public function destroy():Boolean {
-			var i:int;
-			for (i = 0; i < _itens.length; i++) {
-				if (_itens[i] is IDestroyable) {
+			for (var i:int = 0; i < _itens.length; i++)
+				if (_itens[i] is IDestroyable)
 					if(_itens[i].destroy() === false) return false;
-				}
-			}
 			_itens = [];
 			return true;
 		}
@@ -129,9 +118,8 @@
 		* @return
 		*/
 		protected function _verifyValidType($item:Object):Boolean {
-			if (($item as _itemType) is _itemType) {
+			if (($item as _itemType) is _itemType)
 				return true;
-			}
 			return false;
 		}
 		
@@ -141,12 +129,9 @@
 		* @return
 		*/
 		public function has($item:Object):Boolean {
-			var i:int;
-			for (i = 0; i < _itens.length; i++) {
-				if (_itens[i] === $item) {
+			for (var i:int = 0; i < _itens.length; i++)
+				if (_itens[i] === $item)
 					return true;
-				}
-			}
 			return false;
 		}
 		
