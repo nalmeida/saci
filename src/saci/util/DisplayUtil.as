@@ -87,6 +87,23 @@
 			}	
 		}
 		
+		public static function swapToHightestIndex($scope:DisplayObjectContainer, $who:DisplayObject):uint {
+			
+			var highest:uint = 0;
+			
+			for (var i:uint = 0; i < $scope.numChildren ; i++) {
+				var mc:* = $scope.getChildAt(i);
+				
+				if ($scope.getChildIndex(mc) > highest) highest = $scope.getChildIndex(mc);
+			}
+			
+			if ($scope.getChildIndex($who) < highest) {
+				$scope.swapChildrenAt($scope.getChildIndex($who), highest);
+			}
+			
+			return highest;
+		}
+		
 	}
 	
 }
