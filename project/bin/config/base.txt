@@ -1,46 +1,11 @@
-﻿{
-	"fonts":{
-		"helveticaBlack": "helvetica"
-	},
-	"styles":[
-		{
-			"name": "itemText",
-			"fontName": "helvetica",
-			"size": 15,
-			"color": "0xD60101",
-			"bold": false,
-			"italic": false,
-			"underline": false,
-			"align": "left",
-			"leftMargin": 0,
-			"rightMargin": 0,
-			"indent": 0,
-			"leading": 0,
-			"optValue":{
-				"wordWrap": true,
-				"autoSize": "left"
-			}
-		},{
-			"name": "itemTextItalic",
-			"fontName": "helvetica",
-			"size": 35,
-			"color": "0x0000A0",
-			"bold": false,
-			"italic": true,
-			"underline": false,
-			"align": "left",
-			"leftMargin": 0,
-			"rightMargin": 0,
-			"indent": 0,
-			"leading": 0,
-			"optValue":{
-				"wordWrap": false,
-				"autoSize": "left"
-			}
+﻿/*
+// Configurações etruturais do site em JSON, carregado antes de tudo. Exemplo:
+{
+	"menu":{
+		"position":{
+			"x": 10,
+			"y": 10
 		}
-	],
-	"background":{
-		"top": 20,
-		"left": 20
 	}
 }
+*/
