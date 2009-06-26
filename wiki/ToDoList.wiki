@@ -6,6 +6,7 @@ Lista de pendências para o módulo
 
 == Pendências ==
 
+  * Gerar uma tela padrão com explicação rápida sobre a project no sucesso de compilação;
   * Possibilidade de carregar um swf num ApplicationDomain diferente do padrão;
 
 == Lista de desejos ==
