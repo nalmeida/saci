@@ -1,90 +1,119 @@
-﻿<root>
+﻿<!-- 
+	Estrutura de seções e dependências
+ -->
+<root>
+	<!--
+		"Variáveis" globais usadas no restante do xml usando a seguinte notação:
+		
+		<global>
+			<carneiro value="marcelo miranda carneiro" />
+		</global>
+		
+		...
+		
+		<... value="{carneiro} é um cara legal" />
+	-->
 	<global>
-		<namespace value="br.com.project.example.ui.sessions" />
+		<namespace value="project_name.ui.sessions" />
 	</global>
 	
+	<!-- 
+		Dependências e parâmetros carregados para a estrutura do site
+		como menus, footer, fundo ou qualquer coisa que não é específica de uma "seção"
+	-->
 	<base>
+		<!-- 
+			lista de itens externos que são considerados "necessários" para
+			a estrutura, serão carregados na ordem, a estrutura será construída
+			ao final do carregamento desta lista
+		-->
 		<dependencies>
-			<item name="movieclipbase" value="{swfPath}base.swf" />
-			<item name="fonts" value="{swfPath}fonts.swf" />
-			<item name="config" value="{configPath}base.txt" />
-			<item name="locale" value="{defaultLocalePath}locale.xml" />
+			<!-- 
+			item a ser carregado, no campo "value" é possível usar os "shortcuts"
+			definidos no html, como caminhos, variáveis de ambiente, etc
+			 -->
+			<!-- <item name="movieclipbase" value="{swfPath}base.swf" /> -->
+			<!-- <item name="config" value="{configPath}base.txt" /> -->
+			<!-- <item name="locale" value="{defaultLocalePath}dictionary.xml" /> -->
 		</dependencies>
+		
+		<!-- 
+        Parâmetros usados para a estrutura. O XML puro fará parte da instância project_name.sessions.Base.
+		Pode conter qualquer XML, mas inicialmente já está preparado para adicionar cada nó
+        que contenha "id" e "value" na classe project_name.data.sessions.ProjectParams
+		 -->
 		<params>
 			<linkage id="bg" value="lib_square" />
-			<linkage id="helveticaBlack" value="lib_HelveticaNeueBlackExt" />
-			<linkage id="helveticaBlackItalic" value="lib_HelveticaNeueBlackExtItalic" />
 		</params>
 	</base>
 	
-	<sessions useDeeplink="true" defaultSessionId="subArea4">
+	<!-- 
+		Grupo das seções;
+			@defaultSessionId = id da seção carregada caso nenhuma deeplink válida seja passada
+	 -->
+	<sessions defaultSessionId="session1"> <!-- não implementado: useDeeplink="true" -->
 
-		<session id="session1" deeplink="/session1/" className="{namespace}.session1.Session1">
+		<!-- 
+			XML de cada seção, tem uma estrutura muito parecida com a "base"
+				@id = id (único) da seção
+				@deeplink = deeplink da seção (colocar no formato final: "/nome/")
+				@className = Nome da classe que se instanciará e utilizará os dados do nó
+				@redirect = ignora o deeplink no analytics e manda para a seção (por id)
+		 -->
+		<session id="session1" deeplink="/session1/" className="{namespace}.BlankSession">
+			<!-- 
+				Dependências e parâmetros funcionam como no nó "<base>"
+			 -->
+			<!-- 
 			<dependencies>
-				<item name="holder" value="{swfPath}session1.swf" />
+				<item name="NAME" value="VALUE" />
 			</dependencies>
 			<params>
-				<linkage id="session" value="lib_session" />
+				<linkage id="ID" value="VALUE" />
 			</params>
+			 -->
 		</session>
-		<session id="session2" deeplink="/session2/" className="{namespace}.session1.Session1"> <!-- overlay="true" -->
-			<dependencies>
-				<item name="holder" value="{swfPath}session2.swf" />
-			</dependencies>
-			<params>
-				<linkage id="session" value="lib_session" />
-			</params>
-		</session>
-		<session id="session3" deeplink="/session3/" className="{namespace}.session3.Session3" redirect="subArea1">
-			<dependencies>
-				<item name="holder" value="{swfPath}session3.swf" />
-				<item name="config" value="{configPath}session3.txt" />
-			</dependencies>
-			<params>
-				<linkage id="session" value="lib_session" />
-				<linkage id="thumbOver" value="lib_thumb_over" />
-			</params>
+		
+		<!-- 
+			Exemplo de xml com sub-seções / conteúdos;
+			O XML das seções é recursivo, é possível ter uma seção dentro da outra recursivamente
+		-->
+		<session id="session2" deeplink="/session2/" className="{namespace}.BlankSession" redirect="session2.subArea1">
 			
-			<!-- itens de uma seção (interações relacionadas a um deeplink), cada tag, adiciona um deeplink na navigation -->
-			<content id="subArea1" deeplink="sub-area1" className="{namespace}.session3.Item" >
+			<!--
+				Sub seção, similar à seção.
+			-->
+			<session id="session2.subArea1" deeplink="/sub-area1/" className="{namespace}.BlankSession">
+				<!--
 				<dependencies>
-					<item name="imagem" value="{imgPath}imagem1.jpg" />
+					<item name="NAME" value="VALUE" />
 				</dependencies>
 				<params>
-					<address id="destination" value="/session3/sub-area1/" />
+					<linkage id="ID" value="VALUE" />
 				</params>
-			</content>
-			<content id="subArea2" deeplink="sub-area2" className="{namespace}.session3.Item" >
+				-->
+			</session>
+			
+			<!--
+				itens de uma seção (interações relacionadas a um deeplink), 
+				cada tag, adiciona um deeplink na navigation
+			-->
+			<content id="session2.content1" deeplink="interact1" className="{namespace}.BlankSession" >
+				<!--
 				<dependencies>
-					<item name="imagem" value="{imgPath}imagem2.jpg" />
+					<item name="NAME" value="VALUE" />
 				</dependencies>
 				<params>
-					<address id="destination" value="/session3/sub-area2/" />
+					<linkage id="ID" value="VALUE" />
 				</params>
-			</content>
-			<content id="subArea3" deeplink="sub-area3" className="{namespace}.session3.Item" >
-				<dependencies>
-					<item name="imagem" value="{imgPath}imagem3.jpg" />
-				</dependencies>
-				<params>
-					<address id="destination" value="/session3/sub-area3/" />
-				</params>
-			</content>
-			<content id="subArea4" deeplink="sub-area4" className="{namespace}.session3.Item" >
-				<dependencies>
-					<item name="imagem" value="{imgPath}imagem4.jpg" />
-				</dependencies>
-				<params>
-					<address id="destination" value="/session3/sub-area4/" />
-				</params>
+				-->
 			</content>
 			
-			<!-- apenas redirects, não cria histórico e não manda pro analytics -->
-			<content id="subAreaRedirect1" deeplink="subarea1" redirect="subArea1" />
-			<content id="subAreaRedirect2" deeplink="subarea2" redirect="subArea2" />
-			<content id="subAreaRedirect3" deeplink="subarea3" redirect="subArea3" />
-			<content id="subAreaRedirect4" deeplink="subarea4" redirect="subArea4" />
-
+			<!--
+				Redirects para criar clones de endereços, não cria histórico
+				e não manda pro analytics
+			-->
+			<content id="subAreaRedirect1" deeplink="subarea1" redirect="session2.subArea1" />
 		</session>
 	</sessions>
 </root>
