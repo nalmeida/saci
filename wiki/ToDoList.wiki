@@ -6,12 +6,13 @@ Lista de pendências para o módulo
 
 == Pendências ==
 
-  * Gerar uma tela padrão com explicação rápida sobre a project no sucesso de compilação;
-  * Possibilidade de carregar um swf num ApplicationDomain diferente do padrão;
+  # Possibilidade de que cada session tenha um XML separado;
+  # Adicionar um serviço como uma "dependência";
+  # Possibilidade de adicionar um Deeplink (Session) por "fora";
+  # Gerar uma tela padrão com explicação rápida sobre a project no sucesso de compilação;
+  # Possibilidade de carregar um swf num ApplicationDomain diferente do padrão;
 
 == Lista de desejos ==
 
   * Implementar as classes de "transform" do Zeh para SaciSprite e SaciMovieclip (http://zehfernando.com/2009/creating-a-movieclip-class-for-designers/) adicionando também o "tint";
-  * Adicionar um serviço como uma "dependência";
-  * Possibilidade de que cada session tenha um XML separado;
   * Colocar uma "version" ou "cache" em global para somar a todas as requisições;
