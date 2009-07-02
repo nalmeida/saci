@@ -8,6 +8,7 @@ Lista de pendências para o módulo
 
   # Possibilidade de que cada session tenha um XML separado;
   # Adicionar um serviço como uma "dependência";
+  # Automatizar "linkages" nas dependências que forem SWF, as3;
   # Possibilidade de adicionar um Deeplink (Session) por "fora";
   # Gerar uma tela padrão com explicação rápida sobre a project no sucesso de compilação;
   # Possibilidade de carregar um swf num ApplicationDomain diferente do padrão;
