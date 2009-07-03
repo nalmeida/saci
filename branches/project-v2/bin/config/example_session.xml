@@ -1,0 +1,27 @@
+﻿<!-- 
+	Estrutura de seções externas (igual a session)
+ -->
+<session id="sessionExt2" deeplink="/session-ext2/" className="{namespace}.BlankSession">
+	<dependencies>
+		<!-- <item name="movieclipbase" value="{swfPath}base.swf" /> -->
+	</dependencies>
+	<params>
+		<!-- <linkage id="bg" value="lib_square" /> -->
+	</params>
+	
+	<session id="sessionExt2.session1" deeplink="/session1/" className="{namespace}.BlankSession">
+		<!--
+			Sub seção, similar à seção.
+		-->
+		<session id="sessionExt2.subArea1" deeplink="/sub-area1/" className="{namespace}.BlankSession">
+			<!--
+			<dependencies>
+				<item name="NAME" value="VALUE" />
+			</dependencies>
+			<params>
+				<linkage id="ID" value="VALUE" />
+			</params>
+			-->
+		</session>
+	</session>
+</session>
