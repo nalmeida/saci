@@ -36,6 +36,7 @@
 		public var isPaused:Boolean;
 		
 		private var _stats:Stats;
+		private var _textHistory:Array = [];
 		private var _fldText:TextField;
 		private var _bgBox:SaciSprite;
 		private var _dragBox:SaciSprite;
@@ -118,8 +119,15 @@
 		 * @param	$txt
 		 */
 		private function appendText($txt:*):void {
-			_fldText.appendText("[" + _getTimestamp() + "] " + $txt + "\n");
-			_fldText.scrollV = _fldText.textHeight;
+			_textHistory[int(_textHistory.length)] = "[" + _getTimestamp() + "] " + $txt;
+			if(_fldText != null){
+				if (_fldText.text == "") {
+					_fldText.appendText(_textHistory.join("\n"));
+				}else{
+					_fldText.appendText(_textHistory[int(_textHistory.length - 1)] + "\n");
+				}
+				_fldText.scrollV = _fldText.textHeight;
+			}
 		}
 		
 		/**
@@ -258,6 +266,8 @@
 		private function _normalizeTime($time:int):String {
 			return $time < 10 ? "0" + $time : $time.toString();
 		}
+		
+		public function get textHistory():Array { return _textHistory; }
 	}
 	
 }
