@@ -186,6 +186,8 @@
 			super._listenerManager.addEventListener(this.stage, KeyboardEvent.KEY_UP, _onKeyPress);
 			
 			hide();
+			
+			appendText("");
 		}
 		
 		/**
