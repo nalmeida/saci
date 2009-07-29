@@ -104,6 +104,48 @@
 			return highest;
 		}
 		
+		/**
+		 * Faz um "scale" proporcional de um objeto
+		 * @param	$object
+		 * @param	$width
+		 * @param	$height
+		 * @param	$proportion "smaller" mantém a menor proporção, "bigger" mantém a maior proporção
+		 */
+		public static function scaleObject($object:DisplayObjectContainer, $width:Number, $height:Number, $proportion:String = "smaller"):void {
+			
+			var proportion:String = $proportion;
+			var object:DisplayObjectContainer = $object;
+			
+			var objectAspectRatio:Number;
+			var holderAspectRatio:Number;
+			var objectWidth:Number;
+			var objectHeight:Number;
+			
+			objectWidth = $width;
+			objectHeight = $height;
+			
+			objectAspectRatio = object.width / object.height;
+			holderAspectRatio = objectWidth / objectHeight;
+			
+			if(proportion == "smaller") {
+				if ( holderAspectRatio >= objectAspectRatio ) {
+					object.width = (objectHeight * objectAspectRatio);
+					object.height = objectHeight;
+				} else {
+					object.width = objectWidth;
+					object.height = (objectWidth / objectAspectRatio)				
+				}
+			} else if (proportion == "bigger") {
+				if ( holderAspectRatio >= objectAspectRatio ) {
+					object.width = objectWidth;
+					object.height = (objectWidth / objectAspectRatio)				
+				} else {
+					object.width = (objectHeight * objectAspectRatio);
+					object.height = objectHeight;
+				}
+			}
+		}
+		
 	}
 	
 }
