@@ -24,7 +24,7 @@
 		private var _width:int = 320;
 		private var _height:int = 240;
 		private var _duration:int = 0;
-		private var _autostart:Boolean;
+		private var _autoStart:Boolean;
 		private var _volume:Number = 1;
 		
 		private var _isMute:Boolean;
@@ -217,7 +217,7 @@
 		}
 		
 		private function _onVideoMetadata(e:VideoEvent):void {
-			if (autostart) {
+			if (autoStart) {
 				play();
 			}
 			_redneckVideoPlayer.volume = volume;
@@ -268,9 +268,9 @@
 		public function get isMute():Boolean { return _isMute; }		
 		public function get flv():String { return _flv; }
 		
-		public function get autostart():Boolean { return _autostart; }
-		public function set autostart(value:Boolean):void {
-			_autostart = value;
+		public function get autoStart():Boolean { return _autoStart; }
+		public function set autoStart(value:Boolean):void {
+			_autoStart = value;
 		}
 		
 		public function get volume():Number { return _volume; }

@@ -111,7 +111,7 @@
 		 * @param	$height
 		 * @param	$proportion "smaller" mantém a menor proporção, "bigger" mantém a maior proporção
 		 */
-		public static function scaleObject($object:DisplayObjectContainer, $width:Number, $height:Number, $proportion:String = "smaller"):void {
+		public static function scaleProportionally($object:DisplayObjectContainer, $width:Number, $height:Number, $proportion:String = "smaller"):void {
 			
 			var proportion:String = $proportion;
 			var object:DisplayObjectContainer = $object;
