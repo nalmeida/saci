@@ -1,8 +1,14 @@
 ﻿package saci.uicomponents {
+	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.utils.clearInterval;
+	import flash.utils.setInterval;
 	import saci.ui.SaciSprite;
+	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
+	import saci.uicomponents.videoPlayer.VideoPlayerScreen;
 	import saci.util.DisplayUtil;
 	import saci.util.Logger;
 	import saci.video.Video;
@@ -15,11 +21,16 @@
 		private var _width:Number = 320;
 		private var _height:Number = 272;
 		private var _autoHideBar:Boolean = false;
+		private var _image:String;
 		private var _flv:String;
 		private var _autoStart:Boolean;
 		private var _stretching:Boolean = false;
+		private var _fullScreenEnabled:Boolean = false;
+		private var _timerEnabled:Boolean = true;
+		private var _fullScreenMode:String = 'normal'; // normal or fullscreen
 		
 		private var _hasLayout:Boolean = false;
+		private var _controlInterval:uint;
 		
 		/**
 		 * Elements
@@ -27,16 +38,8 @@
 		private var _skin:Sprite;
 		private var _video:Video;
 		
-		private var _screen:Sprite;
-			private var _screenBase:Sprite;
-			private var _screenVideoHolder:Sprite;
-			private var _bufferIcon:MovieClip;
-			
-		private var _controlBar:Sprite;
-			private var _controlBase:Sprite;
-			private var _playButton:Sprite;
-			private var _pauseButton:Sprite;
-			private var _rewindButton:Sprite;
+		private var _screen:VideoPlayerScreen;
+		private var _controlBar:VideoPlayerControlBar;
 		
 		public function VideoPlayer() {
 			Logger.init(Logger.logLevel);
@@ -48,26 +51,30 @@
 		public function refresh():void {
 			if (_hasLayout) {
 				
-				_screenBase.width = _width;
+				screen.base.width = _width;
 				
 				if (autoHideBar) {
-					_screenBase.height = _height;
-					_controlBar.y = _screenBase.height - _controlBar.height;
+					screen.base.height = _height;
+					controlBar.y = screen.base.height - controlBar.height;
 				} else {
-					_screenBase.height = _height - _controlBar.height;
-					_controlBar.y = _screenBase.height;
+					screen.base.height = _height - controlBar.height;
+					controlBar.y = screen.base.height;
 				}
-				_bufferIcon.x = _screenBase.width * .5;
-				_bufferIcon.y = _screenBase.height * .5;
+				screen.bufferIcon.x = screen.base.width * .5;
+				screen.bufferIcon.y = screen.base.height * .5;
 				
 				_resizeVideo();
 				
-				_controlBase.width = _screen.width;
+				_controlBar.refresh();
+				
+				controlBar.base.width = screen.width;
 			}
 		}
 		
 		public function change(flvFile:String):void {
-			dispose();
+			if (_video != null) {
+				_video.dispose();
+			}
 			_flv = flvFile;
 			_video.load(flv);
 		}
@@ -76,58 +83,148 @@
 			change(flvFile);
 		}
 		
-		private function dispose():void{
+		public function dispose():void {
 			if (_video != null) {
 				_video.dispose();
 			}
+			clearInterval(_controlInterval);
+		}
+		
+		public function rewind(e:Event = null):void {
+			stop();
+			video.rewind();
+			_controlBar.percentPlayed = 0;
+		}
+		public function stop(e:Event = null):void {
+			video.stop();
+		}
+		public function playPause(e:Event = null):void {
+			video.playPause();
+		}
+		public function pause(e:Event = null):void {
+			video.pause();
+		}
+		public function play(e:Event = null):void {
+			video.play();
 		}
 		
 		/**
 		 * PRIVATE
 		 */
-		private function _arrangeLayout():void {
-			if (!_hasLayout) {
-				_createLayoutElements();
-			}
-			addChild(_screen);
-			addChild(_controlBar);
-			
-			refresh();
-		}
 		
 		private function _createLayoutElements():void {
 			
-			_screen = _skin.getChildByName("screen") as Sprite;
-				_screenVideoHolder = _screen.getChildByName("screenVideoHolder") as Sprite;
-				_screenBase = _screen.getChildByName("screenBase") as Sprite;
-				_bufferIcon = _screen.getChildByName("bufferIcon") as MovieClip;
+			if (!_hasLayout) {
 				
-			_controlBar = _skin.getChildByName("controlBar") as Sprite;
-				_controlBase = _controlBar.getChildByName("controlBase") as Sprite;
-				_playButton = _controlBar.getChildByName("playButton") as Sprite;
-				_pauseButton = _controlBar.getChildByName("pauseButton") as Sprite;
-				_rewindButton = _controlBar.getChildByName("rewindButton") as Sprite;
-			
-			_video = new Video();
-			_screenVideoHolder.addChild(_video);
+				_screen = new VideoPlayerScreen(this, _skin);
+				_controlBar = new VideoPlayerControlBar(this, _skin);
+				_video = new Video();
 				
-			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
-			
-			_hasLayout = true;
+				screen.videoHolder.addChild(_video);
+				
+				/* BAR */
+				if (_fullScreenEnabled) {
+					_controlBar.enableFullScreen();
+				} else {
+					_controlBar.disableFullScreen();
+				}
+				if (_timerEnabled) {
+					_controlBar.enableTimer();
+				} else {
+					_controlBar.disableTimer();
+				}
+				
+				addChild(_screen);
+				addChild(_controlBar);
+				
+				_addListeners();
+				
+				_hasLayout = true;
+				
+				refresh();
+				
+				_controlInterval = setInterval(_controlAll, 100);
+			}
 		}
 		
 		private function _resizeVideo():void {
-			//_video.width = _width;
+			
 			if (stretching) {
 				_video.width = _width;
 				_video.height = _height;
 			} else {
 				
-				DisplayUtil.scaleObject(_video, _screenBase.width, _screenBase.height);
+				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height);
 				
-				_video.x = (_screenBase.width * .5) - (_video.width * .5);
-				_video.y = (_screenBase.height * .5) - (_video.height * .5);
+				_video.x = (screen.base.width * .5) - (video.width * .5);
+				_video.y = (screen.base.height * .5) - (video.height * .5);
 			}
+		}
+		
+		private function _controlAll():void {
+			//trace(video.status);
+			switch(video.status) {
+				case "stop" :
+					controlBar.pauseButton.visible = false;
+					controlBar.playButton.visible = true;
+					break;
+				case "pause" :
+					controlBar.pauseButton.visible = false;
+					controlBar.playButton.visible = true;
+					break;
+				case "play" :
+					controlBar.pauseButton.visible = true;
+					controlBar.playButton.visible = false;
+					break;
+			}
+			//_video.mute();
+			
+			if (timerEnabled && video.isPlaying) {
+				_controlBar.time = _video.time;
+			}
+			
+			if (_video.isPlaying) {
+				_controlBar.percentPlayed = _video.time / _video.duration;
+			}
+			
+			if (!_video.isLoaded) {
+				_controlBar.percentLoaded = _video.percentLoaded;
+			} else {
+				_controlBar.percentLoaded = 1;
+			}
+		}
+		
+		/**
+		 * LISTENERS
+		 */
+		private function _addListeners():void {
+			mouseChildren = false;
+			buttonMode = true;
+			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
+			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
+			_listenerManager.addEventListener(video, Video.BUFFER_FULL, _onBufferFull);
+		}
+		
+		private function _removeListeners():void {
+			_listenerManager.removeAllEventListeners(this);
+			_listenerManager.removeAllEventListeners(video);
+		}
+		
+		private function _onBufferFull(e:Event):void {
+			screen.hideBufferIcon();
+		}
+		
+		private function _startLoading(e:MouseEvent = null):void{
+			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
+				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
+			}
+			screen.hideBufferIcon();
+			mouseChildren = true;
+			buttonMode = false;
+			play();
+			
+			screen.buttonMode = true;
+			_listenerManager.addEventListener(screen, MouseEvent.CLICK, playPause);
 		}
 		
 		/**
@@ -146,13 +243,19 @@
 			refresh();
 		}
 		
+		override public function destroy():Boolean {
+			dispose();
+			_removeListeners();
+			return super.destroy();
+		}
+		
 		/**
 		 * SETTERS AND GETTERS
 		 */
 		public function get skin():Sprite { return _skin; }
 		public function set skin(value:Sprite):void {
 			_skin = value;
-			_arrangeLayout();
+			_createLayoutElements();
 		}
 		
 		public function get autoHideBar():Boolean { return _autoHideBar; }
@@ -162,17 +265,63 @@
 		
 		public function get flv():String { return _flv; }
 		
+		public function get stretching():Boolean { return _stretching; }
+		public function set stretching(value:Boolean):void {
+			_stretching = value;
+		}
+		
 		public function get autoStart():Boolean { return _autoStart; }
 		public function set autoStart(value:Boolean):void {
 			_autoStart = value;
 			if (_video != null) {
-				_video.autoStart = autoStart;
+				_video.autoStart = _autoStart;
 			}
 		}
 		
-		public function get stretching():Boolean { return _stretching; }
-		public function set stretching(value:Boolean):void {
-			_stretching = value;
+		public function get image():String { return _image; }
+		public function set image(value:String):void {
+			_image = value;
+			if (_video != null) {
+				video.image = _image;
+			}
+		}
+		
+		public function get video():Video { return _video; }
+		public function get screen():VideoPlayerScreen { return _screen; }
+		public function get controlBar():VideoPlayerControlBar { return _controlBar; }
+		
+		public function get fullScreenEnabled():Boolean { return _fullScreenEnabled; }
+		public function set fullScreenEnabled(value:Boolean):void {
+			_fullScreenEnabled = value;
+			if (_fullScreenEnabled) {
+				_controlBar.enableFullScreen();
+			} else {
+				_controlBar.disableFullScreen();
+			}
+		}
+		
+		public function get volume():Number { 
+			if (video != null) {
+				return video.volume; 
+			} else {
+				return 1;
+			}
+			
+		}
+		public function set volume(value:Number):void {
+			video.volume = value;
+		}
+		
+		public function get fullScreenMode():String { return _fullScreenMode; }
+		
+		public function get timerEnabled():Boolean { return _timerEnabled; }
+		public function set timerEnabled(value:Boolean):void {
+			_timerEnabled = value;
+			if (_timerEnabled) {
+				_controlBar.enableTimer();
+			} else {
+				_controlBar.disableTimer();
+			}
 		}
 		
 	}
