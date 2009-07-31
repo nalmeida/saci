@@ -2,6 +2,7 @@
 	
     import project_name.data.Config;
     import project_name.data.ServerData;
+	import project_name.fonts.FontLibrary;
     import project_name.sessions.Base;
     import project_name.sessions.SessionManager;
 	import project_name.ui.sessions.BlankSession;
@@ -104,6 +105,11 @@
 			
 			_listenerManager.addEventListener(stage, Event.RESIZE, _onResizeStage);
 			
+			/**
+			 * Registra fontes
+			 */
+			
+			FontLibrary.init();
 		}
 		
 		private function _onGetServerData(e:Event):void {
