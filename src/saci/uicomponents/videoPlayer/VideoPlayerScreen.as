@@ -16,6 +16,7 @@
 		private var _screen:Sprite;
 			private var _base:Sprite;
 			private var _videoHolder:Sprite;
+			private var _bigPlayIcon:Sprite;
 			private var _bufferIcon:MovieClip;
 		
 		public function VideoPlayerScreen($videoPlayer:VideoPlayer, $skin:Sprite) {
@@ -26,6 +27,7 @@
 				_base = _screen.getChildByName("base") as Sprite;
 				_videoHolder = _screen.getChildByName("videoHolder") as Sprite;
 				_bufferIcon = _screen.getChildByName("bufferIcon") as MovieClip;
+				_bigPlayIcon = _screen.getChildByName("bigPlayIcon") as Sprite;
 			
 			hideBufferIcon();
 				
@@ -36,17 +38,28 @@
 		}
 		
 		public function showBufferIcon():void {
-			bufferIcon.visible = false;
+			//trace("[VideoPlayerScreen.showBufferIcon] showBufferIcon");
+			bufferIcon.visible = true;
 			bufferIcon.play();
 		}
 		public function hideBufferIcon():void {
+			//trace("[VideoPlayerScreen.hideBufferIcon] hideBufferIcon");
 			bufferIcon.visible = false;
 			bufferIcon.stop();
+		}
+		
+		public function showBigPlayIcon():void {
+			bigPlayIcon.visible = true;
+		}
+		
+		public function hideBigPlayIcon():void {
+			bigPlayIcon.visible = false;
 		}
 		
 		public function get base():Sprite { return _base; }
 		public function get videoHolder():Sprite { return _videoHolder; }
 		public function get bufferIcon():MovieClip { return _bufferIcon; }
+		public function get bigPlayIcon():Sprite { return _bigPlayIcon; }
 		
 	}
 	

@@ -5,6 +5,7 @@
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.net.NetStream;
 	import flash.utils.setTimeout;
 	import saci.events.ListenerManager;
 	import saci.loader.SimpleLoader;
@@ -26,6 +27,7 @@
 		private var _duration:int = 0;
 		private var _autoStart:Boolean;
 		private var _volume:Number = 1;
+		private var _bufferTime:Number = 5;
 		
 		private var _isMute:Boolean;
 		private var _playCount:int = 0;
@@ -46,6 +48,8 @@
 		public static const REWIND:String = "rewind";
 		public static const START:String = "start";
 		public static const BUFFER_FULL:String = "videoBufferFull";
+		public static const BUFFER_EMPTY:String = "videoBufferEmpty";
+		public static const STREAM_NOT_FOUND : String = "streamNotFound";
 		
 		public static const IMAGE_PREVIEW_COMPLETE:String = "imagePreviewComplete";
 		public static const IMAGE_PREVIEW_ERROR:String = "imagePreviewError";
@@ -149,6 +153,8 @@
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.COMPLETE, _onComplete);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY, _onPlay);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_FULL, _onBufferFull);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.STREAM_NOT_FOUND, _onStreamNotFound);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.METADATA, _onVideoMetadata);
 			
 			_initImage();
@@ -217,14 +223,24 @@
 		}
 		
 		private function _onVideoMetadata(e:VideoEvent):void {
-			if (autoStart) {
+			_redneckVideoPlayer.stream.bufferTime = bufferTime;
+			seek(0);
+			if (autoStart && _redneckVideoPlayer.stream.bufferLength > bufferTime) {
 				play();
 			}
 			_redneckVideoPlayer.volume = volume;
 		}
 		
+		private function _onStreamNotFound(e:VideoEvent):void{
+			dispatchEvent(new Event(STREAM_NOT_FOUND));
+		}
+		
 		private function _onBufferFull(e:VideoEvent):void {
 			dispatchEvent(new Event(BUFFER_FULL));
+		}
+		
+		private function _onBufferEmpty(e:VideoEvent):void {
+			dispatchEvent(new Event(BUFFER_EMPTY));
 		}
 		
 		
@@ -267,6 +283,8 @@
 		public function get isLoaded():Boolean { return redneckVideoPlayer.isLoaded; }
 		public function get isMute():Boolean { return _isMute; }		
 		public function get flv():String { return _flv; }
+		public function get stram():NetStream{ return redneckVideoPlayer.stream; }
+		public function get bufferLength():Number{ return redneckVideoPlayer.stream.bufferLength; }
 		
 		public function get autoStart():Boolean { return _autoStart; }
 		public function set autoStart(value:Boolean):void {
@@ -289,6 +307,11 @@
 		public function get id():String { return _id; }
 		public function set id(value:String):void {
 			_id = value;
+		}
+		
+		public function get bufferTime():Number { return _bufferTime; }
+		public function set bufferTime(value:Number):void {
+			_bufferTime = value;
 		}
 		
 	}
