@@ -5,7 +5,9 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.clearInterval;
+	import flash.utils.clearTimeout;
 	import flash.utils.setInterval;
+	import flash.utils.setTimeout;
 	import saci.ui.SaciSprite;
 	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
 	import saci.uicomponents.videoPlayer.VideoPlayerScreen;
@@ -27,7 +29,8 @@
 		private var _stretching:Boolean = false;
 		private var _fullScreenEnabled:Boolean = false;
 		private var _timerEnabled:Boolean = true;
-		private var _fullScreenMode:String = 'normal'; // normal or fullscreen
+		private var _fullScreenMode:String = "normal"; // normal or fullscreen
+		private var _timeout:int = 5000; // time in miliseconds
 		
 		private var _hasLayout:Boolean = false;
 		private var _controlInterval:uint;
@@ -60,8 +63,11 @@
 					screen.base.height = _height - controlBar.height;
 					controlBar.y = screen.base.height;
 				}
-				screen.bufferIcon.x = screen.base.width * .5;
-				screen.bufferIcon.y = screen.base.height * .5;
+				screen.bigPlayIcon.x = screen.bufferIcon.x = screen.base.width * .5;
+				screen.bigPlayIcon.y = screen.bufferIcon.y = screen.base.height * .5;
+				
+				controlBar.pauseButton.visible = false;
+				controlBar.playButton.visible = true;
 				
 				_resizeVideo();
 				
@@ -74,6 +80,9 @@
 		public function change(flvFile:String):void {
 			if (_video != null) {
 				_video.dispose();
+			}
+			if (_controlInterval <=0) {
+				_controlInterval = setInterval(_controlAll, 100);
 			}
 			_flv = flvFile;
 			_video.load(flv);
@@ -95,15 +104,19 @@
 			video.rewind();
 			_controlBar.percentPlayed = 0;
 		}
+		
 		public function stop(e:Event = null):void {
 			video.stop();
 		}
+		
 		public function playPause(e:Event = null):void {
 			video.playPause();
 		}
+		
 		public function pause(e:Event = null):void {
 			video.pause();
 		}
+		
 		public function play(e:Event = null):void {
 			video.play();
 		}
@@ -142,8 +155,6 @@
 				_hasLayout = true;
 				
 				refresh();
-				
-				_controlInterval = setInterval(_controlAll, 100);
 			}
 		}
 		
@@ -162,7 +173,10 @@
 		}
 		
 		private function _controlAll():void {
-			//trace(video.status);
+			
+			if (video.duration > 0) {
+				clearTimeout(timeout);
+			}
 			switch(video.status) {
 				case "stop" :
 					controlBar.pauseButton.visible = false;
@@ -177,20 +191,22 @@
 					controlBar.playButton.visible = false;
 					break;
 			}
-			//_video.mute();
 			
+			// show timer
 			if (timerEnabled && video.isPlaying) {
-				_controlBar.time = _video.time;
+				controlBar.time = video.time;
 			}
 			
-			if (_video.isPlaying) {
-				_controlBar.percentPlayed = _video.time / _video.duration;
+			// moves the slider bar
+			if (video.isPlaying) {
+				controlBar.percentPlayed = video.time / video.duration;
 			}
 			
-			if (!_video.isLoaded) {
-				_controlBar.percentLoaded = _video.percentLoaded;
+			// scales the loader bar
+			if (!video.isLoaded) {
+				controlBar.percentLoaded = video.percentLoaded;
 			} else {
-				_controlBar.percentLoaded = 1;
+				controlBar.percentLoaded = 1;
 			}
 		}
 		
@@ -203,6 +219,8 @@
 			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
 			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
 			_listenerManager.addEventListener(video, Video.BUFFER_FULL, _onBufferFull);
+			_listenerManager.addEventListener(video, Video.BUFFER_EMPTY, _onBufferEmpty);
+			_listenerManager.addEventListener(video, Video.STREAM_NOT_FOUND, _onStreamNotFound);
 		}
 		
 		private function _removeListeners():void {
@@ -210,21 +228,46 @@
 			_listenerManager.removeAllEventListeners(video);
 		}
 		
+		private function _onBufferEmpty(e:Event):void {
+			//trace("[VideoPlayer._onBufferFull] _onBufferFull");
+			screen.showBufferIcon();
+			screen.disable();
+		}
+		
 		private function _onBufferFull(e:Event):void {
+			//trace("[VideoPlayer._onBufferFull] _onBufferFull");
 			screen.hideBufferIcon();
+			screen.enable();
+			play();
+		}
+		
+		private function _onStreamNotFound(e:Event = null):void{
+			trace("VÏDEO NAO ENCONTRADO");
+			dispatchEvent(new Event(Video.STREAM_NOT_FOUND));
+			disable();
+			screen.hideBigPlayIcon();
+			screen.hideBufferIcon();
+			_listenerManager.removeAllEventListeners(video);
+			controlBar.pauseButton.visible = true;
+			controlBar.playButton.visible = false;
 		}
 		
 		private function _startLoading(e:MouseEvent = null):void{
 			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
 				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
 			}
-			screen.hideBufferIcon();
+			screen.disable();
+			screen.hideBigPlayIcon();
+			screen.showBufferIcon();
+			
 			mouseChildren = true;
 			buttonMode = false;
 			play();
 			
 			screen.buttonMode = true;
 			_listenerManager.addEventListener(screen, MouseEvent.CLICK, playPause);
+			
+			timeout = setTimeout(_onStreamNotFound, timeout);
 		}
 		
 		/**
@@ -322,6 +365,16 @@
 			} else {
 				_controlBar.disableTimer();
 			}
+		}
+		
+		public function get bufferTime():Number { return video.bufferTime; }
+		public function set bufferTime(value:Number):void {
+			video.bufferTime = value;
+		}
+		
+		public function get timeout():int { return _timeout; }
+		public function set timeout(value:int):void {
+			_timeout = value;
 		}
 		
 	}
