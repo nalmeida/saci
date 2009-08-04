@@ -15,6 +15,7 @@
 	import flash.text.Font;
 	import project_name.data.RawData;
 	import project_name.sessions.SessionManager;
+	import saci.fonts.FontLibrary;
 	import saci.ui.SaciSprite;
 	import saci.util.ClassUtil;
 	import saci.util.DocumentUtil;
@@ -87,13 +88,17 @@
 			
 			// registrar os elementos estruturais (de lay out) aqui
 			
-			//var txtTest:TextField = new TextField();
-			//txtTest.embedFonts = true;
-			//txtTest.defaultTextFormat = new TextFormat(FontLibrary.getFontName("carneiro", "regular"), 25);
-			//txtTest.text = "Teste do carregamento da fonte "+FontLibrary.getFontName("carneiro", "regular");
-			//txtTest.x = txtTest.y = 30;
-			//txtTest.autoSize = flash.text.TextFieldAutoSize.LEFT;
-			//_layerContent.addChild(txtTest);
+			var txtTest:TextField = new TextField();
+			txtTest.wordWrap = 
+			txtTest.embedFonts = true;
+			txtTest.autoSize = flash.text.TextFieldAutoSize.LEFT;
+			txtTest.width = 500;
+			txtTest.defaultTextFormat = new TextFormat(FontLibrary.getFontName("myriad", "regular"), 25);
+			txtTest.appendText("Teste do carregamento da fonte \"" + FontLibrary.getFontName("myriad", "regular")+"\"\n");
+			txtTest.appendText("Não se esqueça de atualizar ou remover o swc \"fonts.swc\" e as linhas que adicionam este exemplo em \"Main.as\" e \"SiteStructure.as\"");
+			trace("[SiteStructure.init] txtTest.text: " + txtTest.text);
+			txtTest.x = txtTest.y = 30;
+			_layerContent.addChild(txtTest);
 		}
 		
 		public function update():void {

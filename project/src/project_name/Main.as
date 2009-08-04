@@ -11,6 +11,7 @@
     import project_name.ui.SiteStructure;
 	import flash.events.Event;
 	import saci.events.ListenerManager;
+	import saci.fonts.FontLibrary;
 	import saci.uicomponents.Console;
 	import saci.ui.SaciMovieClip;
 	import saci.ui.SaciSprite;
@@ -75,7 +76,7 @@
 			/**
 			 * Registra fontes
 			 */
-			//FontLibrary.addFont("myriad", "regular", lib_MyriadPro);
+			FontLibrary.addFont("myriad", "regular", lib_MyriadPro);
 			
 			/**
 			 * Load Data (build site)
