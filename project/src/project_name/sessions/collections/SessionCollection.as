@@ -41,7 +41,7 @@
 						return false;
 					}
 				}
-				if (counter === (item1.length-1)) {
+				if (counter === item1.length-1) {
 					return true;
 				}
 			}
@@ -101,6 +101,21 @@
 			}
 			return null;
 		}
+		/**
+		 * Pega uma seção por Deeplink, se não existir, roda recurcivamente para cima
+		 * @param	$deeplink Deeplink da seção ([Session].info.deeplink)
+		 * @return
+		 */
+		public function getAnyDeeplinkLevel($deeplink:String):Session {
+			var sessionByDeeplink:Session = getByDeeplink($deeplink);
+			if (sessionByDeeplink == null && $deeplink != null && $deeplink != "/" ) {
+				var parentDeeplink:Array = $deeplink.split("/");
+				if (parentDeeplink.length > 1) {
+					return getAnyDeeplinkLevel(parentDeeplink.slice(0, parentDeeplink.length - 2).join("/")+"/");
+				}
+			}
+			return sessionByDeeplink;
+		}
 		
 		/**
 		 * Pega todas as seções no mesmo nível + ativas pelo ID
@@ -113,7 +128,7 @@
 			var actLink:Array;
 			var returnValue:SessionCollection = new SessionCollection();
 			for (var i:int = 0; i < itens.length; i++) {
-				if (itens[i].active === true) {
+				if (itens[i].active) {
 					returnValue.addItem(itens[i]);
 				}else{
 					actLink = itens[i].info.deeplinkAsArray;
@@ -149,7 +164,7 @@
 		public function hasActive():Boolean {
 			var i:int;
 			for (i = 0; i < itens.length; i++) {
-				if (itens[i].active === true) {
+				if (itens[i].active) {
 					return true;
 				}
 			}

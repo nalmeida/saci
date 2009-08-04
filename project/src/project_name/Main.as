@@ -1,8 +1,10 @@
 ﻿package project_name{
 	
+	import flash.display.DisplayObjectContainer;
+	import flash.system.Security;
     import project_name.data.Config;
     import project_name.data.ServerData;
-	import project_name.fonts.FontLibrary;
+	import project_name.data.vo.MockDataVO;
     import project_name.sessions.Base;
     import project_name.sessions.SessionManager;
 	import project_name.ui.sessions.BlankSession;
@@ -23,73 +25,46 @@
 	 
 	public class Main extends SaciSprite {
 		
-		private var _console:Console;
-		private var _bpc:int = 0;
-		private var _config:Config;		
-		private var _sessionManager:SessionManager;
-		private var _serverData:ServerData;
-		
-		static private var _layerBackground:SaciSprite;
-		static private var _layerContent:SaciSprite;
-		static private var _layerBlocker:SaciSprite;
-		static private var _layerAlert:SaciSprite;
-		static private var _layerConsole:SaciSprite;
+		protected var _console:Console;
+		protected var _bpc:int = 0;
+		protected var _config:Config;		
+		protected var _sessionManager:SessionManager;
+		protected var _siteStructure:SiteStructure;
+		protected var _serverData:ServerData;
+		protected var _mockData:MockDataVO;
 		
 		public function Main():void {
 			if (stage) init();
 			else addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 		
-		private function init(e:Event = null):void {
+		protected function init(e:Event = null):void {
 			removeEventListener(Event.ADDED_TO_STAGE, init);
-			
-			/**
-			 * Register Layers
-			 */
-			_layerBackground = new SaciSprite();
-			_layerContent = new SaciSprite();
-			_layerBlocker = new SaciSprite();
-			_layerAlert = new SaciSprite();
-			_layerConsole = new SaciSprite();
-			
-			addChild(_layerBackground);
-			addChild(_layerContent);
-			addChild(_layerBlocker);
-			addChild(_layerAlert);
-			addChild(_layerConsole);
 			
 			/**
 			 * Register Sessions;
 			 */
 			_sessionManager = SessionManager.getInstance();
+			_siteStructure = SiteStructure.getInstance();
 			BlankSession;
 			
 			/**
 			 * Document
 			 */
-			DocumentUtil.setDocument(_layerContent);
+			DocumentUtil.setDocument(root as DisplayObjectContainer);
 			_bpc = DocumentUtil.isWeb() ? int(DocumentUtil.getFlashVar("bpc")) : Logger.LOG_VERBOSE;
 			
 			/**
 			 * ServerData
 			 */
 			_serverData = ServerData.getInstance();
-			var mockData:Object = { 
-				root: "../",
-				configPath: "{root}config/",
-				config: "{configPath}config.xml",
-				swfPath: "{root}swf/",
-				imgPath: "{root}img/",
-				localePath: "{root}locales/",
-				defaultLocalePath: "{localePath}pt-br/"
-			};
+			_mockData = MockDataVO.getInstance();
 			_listenerManager.addEventListener(_serverData, Event.COMPLETE, _onGetServerData);
 			
 			/**
 			 * Console
 			 */
 			_console = new Console();
-			_layerConsole.addChild(_console);
 
 			/**
 			 * Logger
@@ -97,24 +72,32 @@
 			Logger.init(_bpc, _bpc > 0 && DocumentUtil.isWeb() ? _console.log : trace);
 			Logger.logLevel = _bpc;
 			
-			
-			/**
-			 * Load Data
-			 */
-			_serverData.loadDataFromJs("getObj", mockData);
-			
-			_listenerManager.addEventListener(stage, Event.RESIZE, _onResizeStage);
-			
 			/**
 			 * Registra fontes
 			 */
+			//FontLibrary.addFont("myriad", "regular", lib_MyriadPro);
 			
-			FontLibrary.init();
+			/**
+			 * Load Data (build site)
+			 */
+			_serverData.loadDataFromJs("getObj", _mockData.serverData);
+			
 		}
 		
-		private function _onGetServerData(e:Event):void {
+		protected function _onGetServerData(e:Event):void {
+			
+			/**
+			 * allow domains
+			 */
+			if(_serverData.get("allowedDomains") != null){
+				var allowedDomains:Array = _serverData.get("allowedDomains").split(",");
+				var allowedDomainsLength:int = allowedDomains.length;
+				for (var i:int = 0; i < allowedDomainsLength; i++) {
+					Security.allowDomain(allowedDomains[i]);
+				}
+			}
+			
 			_listenerManager.removeEventListener(_serverData, Event.COMPLETE, _onGetServerData);
-			_serverData.list();
 			
 			/**
 			 * Config
@@ -125,22 +108,32 @@
 			_config.loadDataFromXML(_serverData.get("config"));
 		}
 		
-		private function _buildScreen(e:Event):void {
+		protected function _buildScreen(e:Event):void {
 			_listenerManager.removeAllEventListeners(_config);
 			
-			// monta a estrutura do site
-			SiteStructure.init(_layerBackground, Base.getInstance());
+			/**
+			 * Add resize listener
+			 */
+			_listenerManager.addEventListener(stage, Event.RESIZE, _onResizeStage);
+			
+			/**
+			 * build site structure (usually the background, navigation menus)
+			 */
+			_siteStructure.init(this, Base.getInstance(), _mockData.siteStructure);
+			
+			/**
+			 * add console to stage
+			 */
+			if (_bpc > 0 && _bpc < 4 && DocumentUtil.isWeb())
+				_siteStructure.layerConsole.addChild(_console);
+			
 			_sessionManager.initNavigation();
+			
+			_onResizeStage(null);
 		}
 		
-		static public function get layerBackground():SaciSprite { return _layerBackground; }
-		static public function get layerContent():SaciSprite { return _layerContent; }
-		static public function get layerBlocker():SaciSprite { return _layerBlocker; }
-		static public function get layerAlert():SaciSprite { return _layerAlert; }
-		static public function get layerConsole():SaciSprite { return _layerConsole; }
-		
-		private function _onResizeStage(e:Event):void{
-			SiteStructure.update();
+		protected function _onResizeStage(e:Event):void{
+			_siteStructure.update();
 		}
 	}
 }

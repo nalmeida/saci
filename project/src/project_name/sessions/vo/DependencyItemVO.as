@@ -10,6 +10,8 @@
      * @see project_name.sessions.SessionManager
 	 */
 	
+	import project_name.sessions.collections.DependencyLinkageVOCollection;
+	
 	public class DependencyItemVO{
 		
 		private var _name:String;
@@ -17,13 +19,15 @@
 		private var _type:String;
 		private var _weight:int;
 		private var _version:String;
+		private var _linkageCollection:DependencyLinkageVOCollection;
 		
-		public function DependencyItemVO($name:String, $value:String, $type:String, $weight:int, $version:String) {
+		public function DependencyItemVO($name:String, $value:String, $type:String, $linkageCollection:DependencyLinkageVOCollection = null, $weight:int = 0, $version:String = "0") {
 			_name = $name;
 			_value = $value;
 			_type = $type;
 			_weight = $weight;
 			_version = $version;
+			_linkageCollection = $linkageCollection;
 		}
 		
 		public function toString():String {
@@ -64,6 +68,11 @@
 			}
 			return _version;
 		}
+
+		/**
+		 * lista de linkages
+		 */
+		public function get linkageCollection():DependencyLinkageVOCollection { return _linkageCollection; }
 
 	}
 }

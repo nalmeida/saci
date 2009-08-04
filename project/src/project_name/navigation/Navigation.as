@@ -24,8 +24,8 @@
 		/**
 		 * Static stuff (singleton)
 		 */
-		private static var _instance:Navigation;
-		private static var _allowInstance:Boolean;
+		protected static var _instance:Navigation;
+		protected static var _allowInstance:Boolean;
 
 		public static function getInstance():Navigation {
 			if (Navigation._instance == null) {
@@ -44,14 +44,15 @@
 		/**
 		 * Dynamic stuff
 		 */
-		private var _listenerManager:ListenerManager;
-		private var _sessionManager:SessionManager;
+		protected var _listenerManager:ListenerManager;
+		protected var _sessionManager:SessionManager;
 		
-		private var _currentLink:String;
-		private var _currentSession:Session;
-		private var _lastLink:String;
-		private var _lastSession:Session;
-		private var _redirectId:String;
+		protected var _firstAddress:String;
+		protected var _currentLink:String;
+		protected var _currentSession:Session;
+		protected var _lastLink:String;
+		protected var _lastSession:Session;
+		protected var _redirectId:String;
 
 		public function Navigation():void {
 			if (Navigation._allowInstance !== true) {
@@ -69,7 +70,7 @@
 			/**
 			 * Se não for um deeplink "válido" não faz nada (comparado pelas seções -- [Session].info.deeplink)
 			 */
-			if (isValidDeeplink($deeplink) === false || $deeplink == null) {
+			if (!isValidDeeplink($deeplink) || $deeplink == null) {
 				Logger.logWarning("[Navigation.go] Ivalid Deeplink: " + $deeplink);
 				if ($deeplink != _sessionManager.sessionCollection.getById(_sessionManager.defaultSessionID).info.deeplink) {
 					go(_sessionManager.sessionCollection.getById(_sessionManager.defaultSessionID).info.deeplink);
@@ -102,7 +103,7 @@
 			 * a navigation.go, a SWFAddress não vai fazer nada na onChange, pois a
 			 * área inicial foi "ignorada", força a abertura da seção.
 			 */
-			if (_currentLink == SWFAddress.getValue() && _currentSession.loaded === false) {
+			if (_currentLink == SWFAddress.getValue() && !_currentSession.built) {
 				_buildSession();
 				return;
 			}
@@ -131,8 +132,9 @@
 		 * Evento despachado pelo SWFAddress
 		 * @param	e
 		 */
-		private function _onChange(e:SWFAddressEvent):void{
+		protected function _onChange(e:SWFAddressEvent):void{
 			if (e.value == "/") return;
+			
 			
 			var value:String = resolveDeepLinkFormat(e.value);
 			Logger.log("[Navigation._onChange] value: " + value);
@@ -148,7 +150,9 @@
 			 * o xml com as configurações não foi carregado, define a defaultSession
 			 * para ser lançada quando o carregamento e instanciamentofor finalizado.
 			 */
-			if (_sessionManager.isFinished === false) {
+			if(_firstAddress == null)
+				_firstAddress = value;
+			if (!_sessionManager.isFinished) {
 				_sessionManager.defaultSessionAddress = value;
 				return;
 			}
@@ -170,9 +174,10 @@
 		/**
 		 * Constrói a seção
 		 */
-		private function _buildSession():void {
+		protected function _buildSession():void {
 			
-			sendToAnalytics(_currentLink);
+			if(_currentSession.info.useAnalytics)
+				sendToAnalytics(_currentLink);
 			
 			var sameLevelSessions:SessionCollection = _sessionManager.sessionCollection.getSameLevelById(_currentSession.info.id);
 			var openSessionAfter:Boolean = false;
@@ -182,22 +187,21 @@
 			 */
 			if (_currentSession != null) {
 				
-				var i:int;
 				/**
 				 * Pega seções do mesmo nível + ativas.
 				 */
-				for (i = 0; i < sameLevelSessions.itens.length; i++) {
+				for (var i:int = 0; i < sameLevelSessions.itens.length; i++) {
 					if(
-						sameLevelSessions.itens[i].active === true
+						sameLevelSessions.itens[i].active
 						&& sameLevelSessions.itens[i] != _currentSession
 						&& sameLevelSessions.itens[i] != _currentSession.parentSession
-						&& _currentSession.info.overlay !== true
+						&& !_currentSession.info.overlay
 					){
 						openSessionAfter = true;
 						/**
 						 * Adiciona o handler para abrir a seção chamada quando a seção atual for totalmente fechada.
 						 */
-						if (SessionCollection.isSubSection(_lastSession, _currentSession) === true) {
+						if (SessionCollection.isSubSection(_lastSession, _currentSession)) {
 							_listenerManager.addEventListener(_lastSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
 						}else {
 							_listenerManager.addEventListener(sameLevelSessions.itens[i].highestParentSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
@@ -218,9 +222,9 @@
 		 * Event despachado para abrir a seção chamada quando a seção atual for totalmente fechada.
 		 * @param	$e
 		 */
-		private function _openAfterTransition($e:Event):void {
+		protected function _openAfterTransition($e:Event):void {
 			_listenerManager.removeEventListener($e.target as Session, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
-			if (_currentSession.active === false) {
+			if (!_currentSession.active) {
 				_currentSession.open();
 			}
 		}
@@ -231,7 +235,7 @@
 		 * @return
 		 */
 		public function isValidDeeplink($sessionDeeplink:String):Boolean {
-			var validDeeplink:Session = _sessionManager.sessionCollection.getByDeeplink($sessionDeeplink);
+			var validDeeplink:Session = _sessionManager.sessionCollection.getAnyDeeplinkLevel($sessionDeeplink);
 			return (validDeeplink != null) ? true : false;
 		}
 		
@@ -264,5 +268,10 @@
 		 * Última seção acessada (class Session)
 		 */
 		public function get lastSession():Session { return _lastSession; }
+		
+		/**
+		 * Primeiro endereço acessado (normalmente pelo browser)
+		 */
+		public function get firstAddress():String { return _firstAddress; }
 	}
 }

@@ -26,29 +26,32 @@
 		private var _xmlSession:XML;
 		private var _xmlParams:XMLList;
 		private var _parent:SessionInfoVO;
+		private var _useAnalytics:Boolean;
 		
 		public function SessionInfoVO(
 			$id:String,
 			$deeplink:String,
 			$className:String,
-			$isContent:Boolean,
-			$redirectId:String,
-			$overlay:String,
-			$dependencies:DependencyItemVOCollection,
-			$xmlSession:XML,
-			$xmlParams:XMLList,
-			$parent:SessionInfoVO
+			$isContent:Boolean = false,
+			$parent:SessionInfoVO = null,
+			$useAnalytics:Boolean = true,
+			$redirectId:String = null,
+			$overlay:Boolean = false,
+			$dependencies:DependencyItemVOCollection = null,
+			$xmlSession:XML = null,
+			$xmlParams:XMLList = null
 		) {
 			_id = $id;
 			_deeplink = $deeplink;
 			_className = ($className == "") ? null : $className;
 			_isContent = $isContent;
 			_redirectId = ($redirectId == "") ? null : $redirectId;
-			_overlay = ($overlay == "true");
-			_dependencies = $dependencies;
-			_xmlSession = $xmlSession;
-			_xmlParams = $xmlParams;
+			_overlay = $overlay;
+			_dependencies = $dependencies != null ? $dependencies : new DependencyItemVOCollection();
+			_xmlSession = $xmlSession != null ? $xmlSession : new XML();
+			_xmlParams = $xmlParams != null ? $xmlParams : new XMLList();
 			_parent = $parent;
+			_useAnalytics = _redirectId != null ? false :$useAnalytics;
 
 			// ajusta as barras do deeplink
 			_normalizeDeepLink();
@@ -124,5 +127,9 @@
 		 */
 		public function get overlay():Boolean { return _overlay; }
 
+		/**
+		 * Se a seção contabilizará no analytics. Se redirect=true useAnalytics=false
+		 */
+		public function get useAnalytics():Boolean { return _useAnalytics; }
 	}
 }

@@ -10,10 +10,39 @@
      * @see project_name.sessions.SessionManager
 	 */
 	
+	import project_name.data.ServerData;
     import project_name.sessions.vo.DependencyItemVO;
 	import saci.collection.Collection;
 	
 	public class DependencyItemVOCollection extends Collection {
+		
+		static private var _serverData:ServerData = ServerData.getInstance();
+		
+		/**
+		 * Lê o nó de cada seção para instancia-los recursivamente
+		 * @param	$xml
+		 * @param	$parent
+		 */
+		static public function parseXML($itemList:XMLList, $shortcuts:Object):DependencyItemVOCollection {
+			
+			if ($itemList == null) return null;
+			
+			var dependencies:DependencyItemVOCollection = new DependencyItemVOCollection();
+			var dependencyXml:XML;
+			
+			for (var i:int = 0; i < $itemList.length(); i++) {
+				dependencyXml = $itemList[i];
+				dependencies.addItem(new DependencyItemVO(
+					_serverData.parseString(_serverData.parseString(dependencyXml.@name.toString(), $shortcuts)),
+					_serverData.parseString(_serverData.parseString(dependencyXml.@value.toString(), $shortcuts)),
+					_serverData.parseString(_serverData.parseString(dependencyXml.@type.toString(), $shortcuts)),
+					DependencyLinkageVOCollection.parseXML(dependencyXml.linkage, $shortcuts),
+					int(_serverData.parseString(_serverData.parseString(dependencyXml.@weight.toString(), $shortcuts))),
+					_serverData.parseString(_serverData.parseString(dependencyXml.@version.toString(), $shortcuts))
+				));
+			}
+			return dependencies;
+		}
 		
 		public function DependencyItemVOCollection(...$itens) {
 			_itemType = DependencyItemVO;

@@ -1,47 +1,114 @@
 ﻿package project_name.ui {
 	
 	/**
-    * @author Marcelo Miranda Carneiro
-	*/
+	 * Site structure holder / builder / controller (navigation menus, background, etc, should be controlled here)
+     * @author Marcelo Miranda Carneiro
+	 */
 	
+	import flash.text.TextField;
+	import flash.text.TextFormat;
     import project_name.data.sessions.ProjectParams;
     import project_name.sessions.Base;
 	import com.adobe.serialization.json.JSON;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.text.Font;
+	import project_name.data.RawData;
+	import project_name.sessions.SessionManager;
+	import saci.ui.SaciSprite;
 	import saci.util.ClassUtil;
 	import saci.util.DocumentUtil;
 	
 	public class SiteStructure {
 		
-		static private var _base:Base;
-		static private var _params:ProjectParams;
-		static private var _json:Object; //TODOFBIZ: --- [SiteStructure._json] Gerar objeto StrongType
-
-		static private var _container:DisplayObjectContainer;
-		static private var _bg:DisplayObject;
-		
-		static public function init($container:DisplayObjectContainer, $base:Base):void {
-			_base = $base;
-			_container = $container;
-			_params = new ProjectParams(_base.params);
-			if(_base.loader.bulk.getText("config") != "")
-				_json = JSON.decode(_base.loader.bulk.getText("config"));
-			else {
-				_json = {};
+		//{ singleton
+		private static var _instance:SiteStructure;
+		private static var _allowInstance:Boolean;
+			
+		public static function getInstance():SiteStructure {
+			if (SiteStructure._instance == null) {
+				SiteStructure._allowInstance = true;
+				SiteStructure._instance = new SiteStructure();
+				SiteStructure._instance._sessionManager = SessionManager.getInstance();
+				SiteStructure._allowInstance = false;
 			}
+			return SiteStructure._instance;
+		}
+		//}
+		
+		public function SiteStructure():void {
+			if (SiteStructure._allowInstance !== true) {
+				throw new Error("Use the singleton SiteStructure.getInstance() instead of new SiteStructure().");
+			}
+		}
+		
+		protected var _sessionManager:SessionManager;
+		protected var _base:Base;
+		protected var _params:ProjectParams;
+		protected var _rawData:RawData;
+
+		protected var _root:DisplayObjectContainer;
+		protected var _layerBackground:SaciSprite;
+		protected var _layerContent:SaciSprite;
+		protected var _layerNavigation:SaciSprite;
+		protected var _layerBlocker:SaciSprite;
+		protected var _layerAlert:SaciSprite;
+		protected var _layerConsole:SaciSprite;
+		
+		public function init(siteContainer:DisplayObjectContainer, base:Base, mockData:Object):void {
+			
+			/**
+			 * register default layers
+			 */
+			_root = siteContainer;
+			_layerBackground = new SaciSprite();
+			_layerContent = new SaciSprite();
+			_layerNavigation = new SaciSprite();
+			_layerBlocker = new SaciSprite();
+			_layerAlert = new SaciSprite();
+			_layerConsole = new SaciSprite();
+			
+			_root.addChild(_layerBackground);
+			_root.addChild(_layerContent);
+			_root.addChild(_layerNavigation);
+			_root.addChild(_layerBlocker);
+			_root.addChild(_layerAlert);
+			_root.addChild(_layerConsole);
+			
+			/**
+			 * register base params and config settings
+			 */
+			_base = base;
+			_params = new ProjectParams(_base.params.value);
+			var rawData:Object;
+			if(_base.loader.bulk.getText("config") != "" && _base.loader.bulk.getText("config") != "null")
+				rawData = JSON.decode(_base.loader.bulk.getText("config"));
+			_rawData = new RawData(rawData, mockData);
 			
 			// registrar os elementos estruturais (de lay out) aqui
 			
-			update();
+			//var txtTest:TextField = new TextField();
+			//txtTest.embedFonts = true;
+			//txtTest.defaultTextFormat = new TextFormat(FontLibrary.getFontName("carneiro", "regular"), 25);
+			//txtTest.text = "Teste do carregamento da fonte "+FontLibrary.getFontName("carneiro", "regular");
+			//txtTest.x = txtTest.y = 30;
+			//txtTest.autoSize = flash.text.TextFieldAutoSize.LEFT;
+			//_layerContent.addChild(txtTest);
 		}
 		
-		static public function update():void {
+		public function update():void {
 			// disparado no resize do flash (adicionado na Main.as)
 		}
 		
-		static public function get json():Object { return _json; }
+		public function get rawData():RawData { return _rawData; }
+		
+		public function get root():DisplayObjectContainer { return _root; }
+		public function get layerBackground():SaciSprite { return _layerBackground; }
+		public function get layerContent():SaciSprite { return _layerContent; }
+		public function get layerNavigation():SaciSprite { return _layerNavigation; }
+		public function get layerBlocker():SaciSprite { return _layerBlocker; }
+		public function get layerAlert():SaciSprite { return _layerAlert; }
+		public function get layerConsole():SaciSprite { return _layerConsole; }
 	}
 }
 
