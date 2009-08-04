@@ -52,7 +52,7 @@
 			//TODOFBIZ: --- [ServerData.loadDataFromJs] USE MOCK FLAG
 			
 			_mockData = $mockData;
-			if (ExternalInterface.available === true && DocumentUtil.isWeb() === true) {
+			if (ExternalInterface.available && DocumentUtil.isWeb()) {
 				_obj = ExternalInterface.call($functionName);
 				isLocal = false;
 			} else{
@@ -60,7 +60,6 @@
 				isLocal = true
 			}
 			_obj = parseObject(_obj);
-			Logger.log("[ServerData.loadDataFromJs] isLocal: " + isLocal);
 			dispatchEvent(new Event(Event.COMPLETE));
 		}
 		
@@ -112,7 +111,7 @@
 				if (orderRegexpResult != null) {
 					if (orderRegexpResult[1] != null) {
 						if(values.indexOf(orderRegexpResult[1]) < 0){
-							values.push(orderRegexpResult[1]);
+							values[values.length] = orderRegexpResult[1];
 						}
 					}
 				}
@@ -121,10 +120,12 @@
 			// ordena shortcuts
 			var i:int;
 			for (i = 0; i < values.length; i++) {
-				if ($obj[values[i]].match(orderRegexp) != null) {
-					finalOrder.splice(0, 0, values[i]);
-				}else {
-					finalOrder.push(values[i]);
+				if($obj[values[i]] != null){
+					if ($obj[values[i]].match(orderRegexp) != null) {
+						finalOrder.splice(0, 0, values[i]);
+					} else {
+						finalOrder[finalOrder.length] = values[i];
+					}
 				}
 			}
 			

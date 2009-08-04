@@ -17,7 +17,6 @@
 	import flash.xml.XMLNode;
 	import saci.events.ListenerManager;
 	import saci.util.DocumentUtil;
-	import saci.util.Logger;
 	
 	/**
 	 * Gerencia o carregamento e instanciamento das seções.
@@ -108,7 +107,7 @@
 				throw new Error("defaultSessionId \""+_defaultSessionID+"\" não é uma seção válida.");
 				return;
 			} else {
-				_defaultSessionAddress = (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) ? _defaultSessionAddress : _sessionCollection.getById(_defaultSessionID).info.deeplink;
+				_defaultSessionAddress = (_sessionCollection.getAnyDeeplinkLevel(_defaultSessionAddress) != null) ? _sessionCollection.getAnyDeeplinkLevel(_defaultSessionAddress).info.deeplink : _sessionCollection.getById(_defaultSessionID).info.deeplink;
 			}
 			_isFinished = true;
 		}
@@ -118,7 +117,7 @@
 			 * Se já houver algum link sendo chamado pela Navigation, tenta ir direto nele
 			 */
 			if (_sessionCollection.getByDeeplink(_defaultSessionAddress) != null) {
-				_navigation.go(_sessionCollection.getByDeeplink(_defaultSessionAddress).info.deeplink);
+				_navigation.go(_defaultSessionAddress);
 			}else {
 				throw new Error("Não foi possível encontrar uma seção com o id:" + _defaultSessionAddress);
 			}
@@ -133,7 +132,7 @@
 			
 			var sessionClass:Class;
 			var	session:Session;
-			var dependencies:DependencyItemVOCollection = DependencyParser.parseXML($xml.dependencies[0], _shortcuts);
+			var dependencies:DependencyItemVOCollection = $xml.dependencies[0] != null ? DependencyItemVOCollection.parseXML($xml.dependencies[0].item, _shortcuts) : null;
 
 			if ($xml.@className.toString() == "") {
 				sessionClass = Session;
@@ -151,12 +150,13 @@
 				_serverData.parseString(_serverData.parseString($xml.@deeplink.toString(), _shortcuts)),
 				_serverData.parseString(_serverData.parseString($xml.@className.toString(), _shortcuts)),
 				($xml.name().toString() == "content"),
+				$parent,
+				($xml.@useAnalytics.toString() == "true"),
 				_serverData.parseString(_serverData.parseString($xml.@redirect.toString(), _shortcuts)),
-				_serverData.parseString(_serverData.parseString($xml.@overlay.toString(), _shortcuts)),
+				($xml.@overlay.toString() == "true"),
 				dependencies,
 				$xml,
-				new XMLList(_serverData.parseString(_serverData.parseString($xml.params.toString(), _shortcuts))),
-				$parent
+				new XMLList(_serverData.parseString(_serverData.parseString($xml.params.toString(), _shortcuts)))
 			));
 			
 			/**

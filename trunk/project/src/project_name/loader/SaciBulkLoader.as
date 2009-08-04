@@ -40,7 +40,6 @@
 		 */
 		private var _showLoaderIcon:Boolean = false;
 		private var _bulk:BulkLoader;
-		private var _logLevel:int;
 		private var _listenerManager:ListenerManager;
 		
         public function SaciBulkLoader():void {
@@ -49,8 +48,7 @@
 			
 			_index++;
             _bulk = new BulkLoader("SaciBulkLoader_"+_index);
-			logLevel = Logger.logLevel;
-			_bulk.logFunction = Logger.log;
+			_bulk.logLevel = BulkLoader.LOG_ERRORS;
 			_listenerManager.addEventListener(_bulk, ErrorEvent.ERROR, 	_onLoadError);
 			_listenerManager.addEventListener(_bulk, Event.COMPLETE, _onLoadComplete);
 		}
@@ -120,8 +118,7 @@
 		 * Time out para mostrar o ícone do loader
 		 */
 		private function _showLoaderTimeout():void {
-			if (_showLoaderIcon === true) {
-                Logger.log("[SaciBulkLoader.showLoader]");
+			if (_showLoaderIcon) {
 				dispatchEvent(new Event(SHOW_LOADER));
 			}
 		}
@@ -130,8 +127,7 @@
 		 * Esconde o ícone do loader
 		 */
 		private function _hideLoader():void {
-			if (_showLoaderIcon === true) {
-                Logger.log("[SaciBulkLoader.hideLoader]");
+			if (_showLoaderIcon) {
 				dispatchEvent(new Event(HIDE_LOADER));
 			}
 			_showLoaderIcon = false;
@@ -164,28 +160,5 @@
 		 * Instância da Bulk
 		 */
 		public function get bulk():BulkLoader { return _bulk; }
-		
-		/**
-		 * LogLevel.
-		 * @see saci.util.Logger#logLever
-		 */
-		public function get logLevel():int { return _logLevel; }
-		public function set logLevel($value:int):void {
-			switch($value) {
-				case Logger.LOG_VERBOSE : 
-					_logLevel = BulkLoader.LOG_INFO;
-					break;
-				case Logger.LOG_WARNINGS : 
-					_logLevel = BulkLoader.LOG_WARNINGS;
-					break;
-				case Logger.LOG_ERRORS: 
-					_logLevel = BulkLoader.LOG_ERRORS;
-					break;
-				default:
-                    Logger.logWarning("[SaciBulkLoader.logLevel] $value não é válido. Nada será feito");
-					return;
-			}
-			_bulk.logLevel = _logLevel;
-		}
 	}
 }

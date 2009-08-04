@@ -76,8 +76,6 @@
 			_listenerManager.removeEventListener(loader.bulk.get(XML_LOADER_ID), Event.COMPLETE, _onCompleteXMLLoad);
 			_listenerManager.removeEventListener(loader.bulk.get(XML_LOADER_ID), ErrorEvent.ERROR, _onErrorXMLLoad);
 			_xml = loader.bulk.getXML(XML_LOADER_ID);
-
-			Logger.log("[Config._onCompleteXMLLoad] loaded XML:\n" + _xml);
 			
 			_buildXML(_xml);
 		}
@@ -87,7 +85,7 @@
 		 * @private
 		 */
 		private function _onErrorXMLLoad(e:ErrorEvent):void {
-			Logger.log("[Config._onErrorXMLLoad] Error loading XML, using mock-up xml:\n" + _mockXML);
+			Logger.logError("[Config._onErrorXMLLoad] Error loading XML, using mock-up xml:\n" + _mockXML);
 			_listenerManager.removeEventListener(loader.bulk.get(XML_LOADER_ID), Event.COMPLETE, _onCompleteXMLLoad);
 			_listenerManager.removeEventListener(loader.bulk.get(XML_LOADER_ID), ErrorEvent.ERROR, _onErrorXMLLoad);
 			

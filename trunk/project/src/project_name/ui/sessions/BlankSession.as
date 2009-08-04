@@ -17,24 +17,24 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
+	import project_name.ui.SiteStructure;
 	import saci.ui.SaciMovieClip;
 	import saci.util.DocumentUtil;
 	import saci.util.Logger;
 	
 	public class BlankSession extends Session{
 		
+		protected var _siteStructure:SiteStructure = SiteStructure.getInstance();
 		protected var _parentContainer:DisplayObjectContainer;
 		
 		public function BlankSession($info:SessionInfoVO) {
 			// define onde a seção será adicionada
-			_parentContainer = DocumentUtil.documentClass;
 			super($info);
-			hide();
 			
 			_listenerManager.addEventListener(this, Session.COMPLETE_BUILD, _onCompleteBuild);
 			_listenerManager.addEventListener(_loader.bulk, ErrorEvent.ERROR, _loadError);
 			_listenerManager.addEventListener(this, Session.ON_ACTIVE, _onActive);
-			_listenerManager.addEventListener(this, Session.ON_DEACTIVE, _onDective);
+			_listenerManager.addEventListener(this, Session.ON_DEACTIVE, _onDeactive);
 			_listenerManager.addEventListener(_loader, SaciBulkLoader.SHOW_LOADER, _showLoaderIcon);
 			_listenerManager.addEventListener(_loader, SaciBulkLoader.HIDE_LOADER, _hideLoaderIcon);
 		}
@@ -44,6 +44,7 @@
 		}
 		private function _onCompleteBuild($e:Event):void {
 			_listenerManager.removeEventListener(this, Session.COMPLETE_BUILD, _onCompleteBuild);
+			_parentContainer = _siteStructure.layerContent;
 			_parentContainer.addChild(this);
 			
 			// Constrói a seção aqui
@@ -51,19 +52,27 @@
 		
 		//{ active / deactive
 		private function _onActive($e:Event):void{
-			trace("> active \""+info.id+"\"!");
+			//trace("> active \""+info.id+"\"!");
 		}
-		private function _onDective($e:Event):void{
-			trace("deactive \""+info.id+"\"!");
+		private function _onDeactive($e:Event):void{
+			hide(); // remove a seção da displaylist
+			//trace("deactive \""+info.id+"\"!");
 		}
 		//}
 		
 		//{ loader icon
 		private function _showLoaderIcon($e:Event):void{
-			trace("show loader icon");
+			//trace("show loader icon");
 		}
 		private function _hideLoaderIcon($e:Event):void{
-			trace("hide loader icon");
+			//trace("hide loader icon");
+		}
+		//}
+		
+		//{ transition
+		override protected function _startTransition():void {
+			show(); // insere a seção na displaylist
+			super._startTransition();
 		}
 		//}
 		

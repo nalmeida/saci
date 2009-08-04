@@ -3,18 +3,22 @@
 	/**
 	 * Classe que indica "seção". É integrada com a classe Navigation para fazer o deeplink funcionar automaticamente.
 	 * @author Marcelo Miranda Carneiro | Nicholas Pires de Almeida
-	 * @version 0.1
+	 * @version 0.1.1
 	 * @since 4/2/2009 22:16
-     * @see br.com.lux.navigation.Navigation
-     * @see br.com.lux.sessions.SessionManager
+	 * @see br.com.lux.navigation.Navigation
+	 * @see br.com.lux.sessions.SessionManager
 	 */
 
-    import project_name.loader.SaciBulkLoader;
-    import project_name.navigation.Navigation;
-    import project_name.sessions.collections.DependencyItemVOCollection;
-    import project_name.sessions.collections.SessionCollection;
-    import project_name.sessions.vo.DependencyItemVO;
-    import project_name.sessions.vo.SessionInfoVO;
+	import flash.display.DisplayObject;
+	import flash.system.ApplicationDomain;
+	import flash.system.LoaderContext;
+	import project_name.loader.SaciBulkLoader;
+	import project_name.navigation.Navigation;
+	import project_name.sessions.collections.DependencyItemVOCollection;
+	import project_name.sessions.collections.DependencyLinkageCollection;
+	import project_name.sessions.collections.SessionCollection;
+	import project_name.sessions.vo.DependencyItemVO;
+	import project_name.sessions.vo.SessionInfoVO;
 	import br.com.stimuli.loading.BulkLoader;
 	import br.com.stimuli.loading.loadingtypes.LoadingItem;
 	import flash.display.DisplayObjectContainer;
@@ -84,11 +88,11 @@
 		
 		protected var _built:Boolean = false;
 		protected var _active:Boolean = false;
+		protected var _linkages:DependencyLinkageCollection;
 		
 		public function Session($info:SessionInfoVO) {
 			Session._instances.push(this);
 			_info = $info;
-			
 			_navigation = Navigation.getInstance();
 			_sessionManager = SessionManager.getInstance();
 			
@@ -113,8 +117,8 @@
 			}else {
 				_loader = new SaciBulkLoader();
 				_registerDependencies(info);
+				_listenerManager.addEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
 			}
-			_listenerManager.addEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
 			_listenerManager.addEventListener(this, COMPLETE_END_TRANSTITION, _deactivate);
 			
 			hide();
@@ -128,8 +132,8 @@
 		 */
 		public function open():void {
 			
-			if (_parentSession != null && _parentSession.active === false) {
-				if (_listenerManager.hasEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent) === true) {
+			if (_parentSession != null && !_parentSession.active) {
+				if (_listenerManager.hasEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent)) {
 					_listenerManager.removeEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent);
 				}
 				_listenerManager.addEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent);
@@ -140,15 +144,14 @@
 			_active = true;
 			dispatchEvent(new Event(ON_ACTIVE));
 			
-			var i:int;
-			if (loaded === true) {
-				if(_built === true){
+			if (loaded) {
+				if(_built){
 					_startTransition();
 				}else {
 					_build();
 				}
 			}else {
-				if (hasDependency === true) {
+				if (hasDependency) {
 					_loader.start();
 				}else {
 					_build();
@@ -172,14 +175,14 @@
 		 */
 		public function close():void {
 			//TODOFBIZ: --- [Session.close] verificar se a completeStartTransition foi disparada para evitar o erro de animação na timeline
-			if (_listenerManager.hasEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter) === true) {
+			if (_listenerManager.hasEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter)) {
 				_listenerManager.removeEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
 			}
-			if (loaded === true) {
-				if (children.hasActive() === true)
+			if (loaded) {
+				if (children.hasActive())
 					return;
 				if (_parentSession != null && _navigation.currentSession != _parentSession) {
-					if (_parentSession.children.itens.length > 0 && _parentSession.active === true) {
+					if (_parentSession.children.itens.length > 0 && _parentSession.active) {
 						_listenerManager.addEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
 					}
 				}
@@ -203,7 +206,6 @@
 		private function _deactivate($e:Event):void {
 			_active = false;
 			dispatchEvent(new Event(ON_DEACTIVE));
-			hide();
 		}
 		
 		/**
@@ -212,6 +214,19 @@
 		 */
 		private function _onLoadComplete($e:Event):void {
 			_listenerManager.removeEventListener(_loader.bulk, Event.COMPLETE, _onLoadComplete);
+			if(_linkages != null){
+				var content:DisplayObject;
+				var contentName:String;
+				var linkageLength:int = _linkages.itens.length;
+				for (var i:int = 0; i < linkageLength; i++) {
+					contentName = _linkages.itens[i].name;
+					content = _loader.bulk.getContent(contentName) as DisplayObject;
+					_linkages.itens[i].init(content);
+				}
+				content = null;
+				contentName = null;
+				linkageLength = -1;
+			}
 			_build();
 		}
 		
@@ -234,7 +249,6 @@
 		 */
 		protected function _startTransition():void {
 			Logger.log("[Session._startTransition] " + info.id);
-			show();
 			dispatchEvent(new Event(COMPLETE_START_TRANSTITION));
 		}
 		
@@ -257,9 +271,12 @@
 			if ($info.dependencies == null) return;
 			var i:int;
 			var dependency:DependencyItemVO;
-			
+			if(_linkages == null)
+				_linkages = new DependencyLinkageCollection();
 			for (i = 0; i < $info.dependencies.itens.length; i++) {
 				dependency = $info.dependencies.itens[i];
+				if (dependency.linkageCollection != null)
+					_linkages.addItem(new DependencyLinkage(dependency.name, dependency.linkageCollection));
 				_loader.add(dependency.value, {
 					id: (($info != info) ? $info.id + "." : "") + dependency.name,
 					weight: dependency.weight
@@ -271,8 +288,8 @@
 		 * Adiciona um filho (sub-seção) à seção
 		 * @private
 		 */
-		private function addSessionChild($session:Session):void {
-			if(_children.has($session) === false && $session.info.isContent === true){
+		protected function addSessionChild($session:Session):void {
+			if(!_children.has($session) && $session.info.isContent){
 				_registerDependencies($session.info);
 			}
 			_children.addItem($session);
@@ -318,7 +335,7 @@
 		 * Flash indicando que a seção já foi carregada.
 		 */
 		public function get loaded():Boolean {
-			if (hasDependency === true) {
+			if (hasDependency) {
 				return _loader.bulk.isFinished;
 			} else {
 				return true;
@@ -364,6 +381,7 @@
 			}
 		}
 		
+		public function get linkages():DependencyLinkageCollection { return _linkages; }
 		//}
 	}
 }

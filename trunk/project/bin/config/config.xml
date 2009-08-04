@@ -31,10 +31,15 @@
 			<!-- 
 			item a ser carregado, no campo "value" é possível usar os "shortcuts"
 			definidos no html, como caminhos, variáveis de ambiente, etc
+			Se a dependência for um SWF, é possível registrar os linkages. Dentro da seção, o linkage é chamado usando a LinkageCollection
 			 -->
-			<!-- <item name="movieclipbase" value="{swfPath}base.swf" /> -->
-			<!-- <item name="config" value="{configPath}base.txt" /> -->
-			<!-- <item name="locale" value="{defaultLocalePath}dictionary.xml" /> -->
+			<!--
+			<item name="movieclipbase" value="{swfPath}base.swf" />
+			<item name="config" value="{configPath}base.txt" />
+			<item name="locale" value="{defaultLocalePath}dictionary.xml" >
+				<linkage name="lib_frame"			className="saci.ui.SaciSprite" />
+			</item>
+			-->
 		</dependencies>
 		
 		<!-- 
@@ -43,7 +48,7 @@
         que contenha "id" e "value" na classe project_name.data.sessions.ProjectParams
 		 -->
 		<params>
-			<linkage id="bg" value="lib_square" />
+			<!-- <item name="NAME" value="VALUE" /> -->
 		</params>
 	</base>
 	
