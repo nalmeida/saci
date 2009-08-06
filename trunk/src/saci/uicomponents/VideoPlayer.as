@@ -8,6 +8,7 @@
 	import flash.utils.clearTimeout;
 	import flash.utils.setInterval;
 	import flash.utils.setTimeout;
+	import redneck.events.VideoEvent;
 	import saci.ui.SaciSprite;
 	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
 	import saci.uicomponents.videoPlayer.VideoPlayerScreen;
@@ -43,6 +44,12 @@
 		
 		private var _screen:VideoPlayerScreen;
 		private var _controlBar:VideoPlayerControlBar;
+		
+		/**
+		 * Events
+		 */
+		public static const FIRST_TIME_COMPLETE:String = Video.FIRST_TIME_COMPLETE;
+		public static const FIRST_TIME_PLAY:String = Video.FIRST_TIME_PLAY;
 		
 		public function VideoPlayer() {
 			Logger.init(Logger.logLevel);
@@ -121,6 +128,10 @@
 			video.play();
 		}
 		
+		public function seek(time:Number, playAfter:Boolean = false):void {
+			video.seek(time, playAfter);
+		}
+		
 		/**
 		 * PRIVATE
 		 */
@@ -177,6 +188,7 @@
 			if (video.duration > 0) {
 				clearTimeout(timeout);
 			}
+			//trace("[VideoPlayer._controlAll] video.status: " + video.status);
 			switch(video.status) {
 				case "stop" :
 					controlBar.pauseButton.visible = false;
@@ -218,9 +230,12 @@
 			buttonMode = true;
 			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
 			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
-			_listenerManager.addEventListener(video, Video.BUFFER_FULL, _onBufferFull);
-			_listenerManager.addEventListener(video, Video.BUFFER_EMPTY, _onBufferEmpty);
-			_listenerManager.addEventListener(video, Video.STREAM_NOT_FOUND, _onStreamNotFound);
+			
+			_listenerManager.addEventListener(video, VideoEvent.BUFFER_FULL, _onBufferFull);
+			_listenerManager.addEventListener(video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
+			_listenerManager.addEventListener(video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
+			_listenerManager.addEventListener(video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
+			_listenerManager.addEventListener(video, Video.FIRST_TIME_PLAY, _forwardEvent);
 		}
 		
 		private function _removeListeners():void {
@@ -228,22 +243,26 @@
 			_listenerManager.removeAllEventListeners(video);
 		}
 		
-		private function _onBufferEmpty(e:Event):void {
-			//trace("[VideoPlayer._onBufferFull] _onBufferFull");
-			screen.showBufferIcon();
-			screen.disable();
+		private function _forwardEvent(e:*):void {
+			dispatchEvent(e);
 		}
 		
-		private function _onBufferFull(e:Event):void {
-			//trace("[VideoPlayer._onBufferFull] _onBufferFull");
+		private function _onBufferEmpty(e:VideoEvent):void {
+			if(!video.redneckVideoPlayer.isLoaded) {
+				screen.showBufferIcon();
+				screen.disable();
+			}
+		}
+		
+		private function _onBufferFull(e:VideoEvent):void {
 			screen.hideBufferIcon();
 			screen.enable();
-			play();
+			if(_video.isPaused || _video.isStoped) play();
 		}
 		
-		private function _onStreamNotFound(e:Event = null):void{
+		private function _onStreamNotFound(e:VideoEvent = null):void{
 			trace("VÏDEO NAO ENCONTRADO");
-			dispatchEvent(new Event(Video.STREAM_NOT_FOUND));
+			dispatchEvent(e);
 			disable();
 			screen.hideBigPlayIcon();
 			screen.hideBufferIcon();
@@ -340,6 +359,14 @@
 				_controlBar.enableFullScreen();
 			} else {
 				_controlBar.disableFullScreen();
+			}
+		}
+		
+		public function get time():Number { 
+			if (video != null) {
+				return video.time; 
+			} else {
+				return 0;
 			}
 		}
 		
