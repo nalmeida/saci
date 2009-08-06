@@ -41,16 +41,7 @@
 		
 		public static const FIRST_TIME_COMPLETE:String = "firstTimeComplete";
 		public static const FIRST_TIME_PLAY:String = "firstTimePlay";
-		public static const COMPLETE:String = "complete";
-		public static const PLAY:String = "play";
-		public static const PAUSE:String = "pause";
-		public static const STOP:String = "stop";
-		public static const REWIND:String = "rewind";
-		public static const START:String = "start";
-		public static const BUFFER_FULL:String = "videoBufferFull";
-		public static const BUFFER_EMPTY:String = "videoBufferEmpty";
-		public static const STREAM_NOT_FOUND : String = "streamNotFound";
-		
+	
 		public static const IMAGE_PREVIEW_COMPLETE:String = "imagePreviewComplete";
 		public static const IMAGE_PREVIEW_ERROR:String = "imagePreviewError";
 		
@@ -64,7 +55,7 @@
 		 */
 		public function rewind():void {
 			redneckVideoPlayer.seek(0, false);
-			dispatchEvent(new Event(REWIND));
+			dispatchEvent(new VideoEvent(VideoEvent.REWIND));
 		}
 		
 		public function seek(time:Number, playAfter:Boolean = false):void {
@@ -73,7 +64,7 @@
 		
 		public function stop():void {
 			redneckVideoPlayer.stop();
-			dispatchEvent(new Event(STOP));
+			dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
 		}
 		
 		public function playPause():void {
@@ -86,7 +77,7 @@
 		
 		public function pause():void {
 			redneckVideoPlayer.pause();
-			dispatchEvent(new Event(PLAY));
+			dispatchEvent(new VideoEvent(VideoEvent.PAUSE_NOTIFY));
 		}
 		
 		public function play():void {
@@ -151,15 +142,17 @@
 			addChild(_redneckVideoPlayer);
 			
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.COMPLETE, _onComplete);
-			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY, _onPlay);
-			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_FULL, _onBufferFull);
-			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
-			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.STREAM_NOT_FOUND, _onStreamNotFound);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_START, _onPlay);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.METADATA, _onVideoMetadata);
+			
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_FULL, _onBufferFull);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _forwardVideoEvent);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_STREAMNOTFOUND, _forwardVideoEvent);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.SEEK_INVALIDTIME, _forwardVideoEvent);
 			
 			_initImage();
 		}
-		
+
 		private function _initImage():void {
 			_imgHolder = new SaciSprite();
 			addChild(_imgHolder);
@@ -208,18 +201,14 @@
 			if (_completeCount == 0) {
 				dispatchEvent(new Event(FIRST_TIME_COMPLETE));
 			}
-			dispatchEvent(new Event(COMPLETE));
+			dispatchEvent(new VideoEvent(VideoEvent.COMPLETE));
 			_loopCount++;
 			_completeCount++;
 		}
 		
 		private function _onPlay(e:VideoEvent):void {
-			if (_playCount == 0) {
-				dispatchEvent(new Event(FIRST_TIME_PLAY));
-			}
 			_hidePreviewImage();
-			dispatchEvent(new Event(PLAY));
-			_playCount++;
+			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
 		}
 		
 		private function _onVideoMetadata(e:VideoEvent):void {
@@ -231,18 +220,18 @@
 			_redneckVideoPlayer.volume = volume;
 		}
 		
-		private function _onStreamNotFound(e:VideoEvent):void{
-			dispatchEvent(new Event(STREAM_NOT_FOUND));
-		}
-		
 		private function _onBufferFull(e:VideoEvent):void {
-			dispatchEvent(new Event(BUFFER_FULL));
+			_forwardVideoEvent(e);
+			
+			if (_playCount == 0) {
+				dispatchEvent(new VideoEvent(FIRST_TIME_PLAY));
+				_playCount++;
+			}
+			
 		}
-		
-		private function _onBufferEmpty(e:VideoEvent):void {
-			dispatchEvent(new Event(BUFFER_EMPTY));
+		private function _forwardVideoEvent(e:VideoEvent):void {
+			dispatchEvent(new VideoEvent(e.type, e.level, e.details));
 		}
-		
 		
 		/**
 		 * OVERRIDES
