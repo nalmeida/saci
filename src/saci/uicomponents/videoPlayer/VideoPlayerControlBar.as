@@ -103,9 +103,9 @@
 			_listenerManager.addEventListener(_normalScreenButton, MouseEvent.CLICK, _openNormalScreen);
 			
 			fldTimer.text = "00:00";
-			refresh();
-			
 			addChild(_controlBar);
+			
+			refresh();
 		}
 		
 		public function refresh():void {
@@ -254,6 +254,10 @@
 			var min:uint = (value / 60) % 60;
 			fldTimer.text = String(min < 10 ? "0" + min : min) + ":" + String(sec < 10 ? "0" + sec : sec);
 		}
+		
+		public function get sliderButton():Sprite { return _sliderButton; }
+		
+		public function get timeTrack():Sprite { return _timeTrack; }
 		
 	}
 	

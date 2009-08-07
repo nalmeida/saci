@@ -38,14 +38,16 @@
 		}
 		
 		public function showBufferIcon():void {
-			trace("[VideoPlayerScreen.showBufferIcon] showBufferIcon");
-			bufferIcon.visible = true;
-			bufferIcon.play();
+			if(!bufferIcon.visible) {
+				bufferIcon.visible = true;
+				bufferIcon.play();
+			}
 		}
 		public function hideBufferIcon():void {
-			trace("[VideoPlayerScreen.hideBufferIcon] hideBufferIcon");
-			bufferIcon.visible = false;
-			bufferIcon.stop();
+			if(bufferIcon.visible) {
+				bufferIcon.visible = false;
+				bufferIcon.stop();
+			}
 		}
 		
 		public function showBigPlayIcon():void {
