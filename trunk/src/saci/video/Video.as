@@ -33,6 +33,7 @@
 		private var _playCount:int = 0;
 		private var _completeCount:int = 0;
 		private var _loopCount:int = 0;
+		private var _ready:Boolean = false;
 		
 		private var _redneckVideoPlayer:VideoPlayer;
 		private var _imgHolder:SaciSprite;
@@ -151,6 +152,8 @@
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.SEEK_INVALIDTIME, _forwardVideoEvent);
 			
 			_initImage();
+			
+			_ready = true;
 		}
 
 		private function _initImage():void {
@@ -212,6 +215,7 @@
 		}
 		
 		private function _onVideoMetadata(e:VideoEvent):void {
+			//TODO: ver pq mesm ocom autostart true, ele não começa tocando depois do change.
 			_redneckVideoPlayer.stream.bufferTime = bufferTime;
 			seek(0);
 			if (autoStart && _redneckVideoPlayer.stream.bufferLength > bufferTime) {
@@ -238,6 +242,7 @@
 		 */
 		
 		override public function destroy():Boolean {
+			_ready = false;
 			dispose();
 			return super.destroy();
 		}
@@ -302,6 +307,8 @@
 		public function set bufferTime(value:Number):void {
 			_bufferTime = value;
 		}
+		
+		public function get ready():Boolean { return _ready; }
 		
 	}
 	

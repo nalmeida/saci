@@ -85,11 +85,19 @@
 		}
 		
 		public function change(flvFile:String):void {
-			if (_video != null) {
-				_video.dispose();
+			var oldStatus:String;
+			if (video != null) {
+				if (video.ready) {
+					oldStatus = video.status;
+					rewind();
+				}
+				video.dispose();
 			}
 			if (_controlInterval <=0) {
 				_controlInterval = setInterval(_controlAll, 100);
+			}
+			if (oldStatus == "play") { 
+				autoStart = true;
 			}
 			_flv = flvFile;
 			_video.load(flv);
@@ -109,7 +117,10 @@
 		public function rewind(e:Event = null):void {
 			stop();
 			video.rewind();
-			_controlBar.percentPlayed = 0;
+			_controlBar.percentPlayed = 
+			_controlBar.time = 0;
+			
+			_controlBar.sliderButton.x = _controlBar.timeTrack.x;
 		}
 		
 		public function stop(e:Event = null):void {
@@ -264,14 +275,13 @@
 			trace("VÏDEO NAO ENCONTRADO");
 			dispatchEvent(e);
 			disable();
-			screen.hideBigPlayIcon();
-			screen.hideBufferIcon();
 			_listenerManager.removeAllEventListeners(video);
 			controlBar.pauseButton.visible = true;
 			controlBar.playButton.visible = false;
 		}
 		
-		private function _startLoading(e:MouseEvent = null):void{
+		private function _startLoading(e:MouseEvent = null):void {
+			refresh();
 			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
 				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
 			}
