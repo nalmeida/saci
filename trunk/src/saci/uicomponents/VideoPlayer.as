@@ -1,5 +1,6 @@
 ﻿package saci.uicomponents {
 	
+	import caurina.transitions.Tweener;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -35,6 +36,7 @@
 		
 		private var _hasLayout:Boolean = false;
 		private var _controlInterval:uint;
+		private var _autoStarted:Boolean = false;
 		
 		/**
 		 * Elements
@@ -66,8 +68,12 @@
 				if (autoHideBar) {
 					screen.base.height = _height;
 					controlBar.y = screen.base.height - controlBar.height;
+					controlBar.visible = false;
+					_listenerManager.addEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
+					_listenerManager.addEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
+					_listenerManager.addEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
 				} else {
-					screen.base.height = _height - controlBar.height;
+					screen.base.height = _height - controlBar.base.height;
 					controlBar.y = screen.base.height;
 				}
 				screen.bigPlayIcon.x = screen.bufferIcon.x = screen.base.width * .5;
@@ -85,20 +91,25 @@
 		}
 		
 		public function change(flvFile:String):void {
-			var oldStatus:String;
+			//var oldStatus:String;
 			if (video != null) {
 				if (video.ready) {
-					oldStatus = video.status;
+					//oldStatus = video.status;
 					rewind();
 				}
 				video.dispose();
+				
+				screen.showBufferIcon();
 			}
 			if (_controlInterval <=0) {
 				_controlInterval = setInterval(_controlAll, 100);
 			}
-			if (oldStatus == "play") { 
-				autoStart = true;
-			}
+			//if (oldStatus == "play") { 
+				//autoStart = true;
+			//} else {
+				//autoStart = false;
+			//}
+			_autoStarted = false;
 			_flv = flvFile;
 			_video.load(flv);
 		}
@@ -143,6 +154,14 @@
 			video.seek(time, playAfter);
 		}
 		
+		public function mute():void {
+			controlBar.seekVolume(0);
+		}
+		
+		public function unMute():void {
+			//video.seek(time, playAfter);
+		}
+		
 		/**
 		 * PRIVATE
 		 */
@@ -154,6 +173,7 @@
 				_screen = new VideoPlayerScreen(this, _skin);
 				_controlBar = new VideoPlayerControlBar(this, _skin);
 				_video = new Video();
+				_video.autoStart = autoStart;
 				
 				screen.videoHolder.addChild(_video);
 				
@@ -195,13 +215,22 @@
 		}
 		
 		private function _controlAll():void {
+			//video.mute();
 			
 			if (video.duration > 0) {
 				clearTimeout(timeout);
 			}
+			
 			//trace("[VideoPlayer._controlAll] video.status: " + video.status);
+			
 			switch(video.status) {
 				case "stop" :
+				
+					if (autoStart && (_video.bufferLength  >= bufferTime) && !_autoStarted) {
+						play();
+						_autoStarted = true;
+					}
+				
 					controlBar.pauseButton.visible = false;
 					controlBar.playButton.visible = true;
 					break;
@@ -229,6 +258,7 @@
 			if (!video.isLoaded) {
 				controlBar.percentLoaded = video.percentLoaded;
 			} else {
+				screen.hideBufferIcon();
 				controlBar.percentLoaded = 1;
 			}
 		}
@@ -242,11 +272,20 @@
 			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
 			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
 			
+			_listenerManager.addEventListener(video, VideoEvent.LOAD_COMPLETE, _onLoadComplete);
 			_listenerManager.addEventListener(video, VideoEvent.BUFFER_FULL, _onBufferFull);
 			_listenerManager.addEventListener(video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
 			_listenerManager.addEventListener(video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
 			_listenerManager.addEventListener(video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
 			_listenerManager.addEventListener(video, Video.FIRST_TIME_PLAY, _forwardEvent);
+		}
+		
+		private function _onLoadComplete(e:VideoEvent):void {
+			if(autoStart) {
+				_autoStarted = true;
+				_startLoading();
+				_onBufferFull(e);
+			}
 		}
 		
 		private function _removeListeners():void {
@@ -268,16 +307,18 @@
 		private function _onBufferFull(e:VideoEvent):void {
 			screen.hideBufferIcon();
 			screen.enable();
-			if(_video.isPaused || _video.isStoped) play();
+			if (_video.isPaused || _video.isStoped) play();
 		}
 		
-		private function _onStreamNotFound(e:VideoEvent = null):void{
-			trace("VÏDEO NAO ENCONTRADO");
-			dispatchEvent(e);
-			disable();
-			_listenerManager.removeAllEventListeners(video);
-			controlBar.pauseButton.visible = true;
-			controlBar.playButton.visible = false;
+		private function _onStreamNotFound(e:VideoEvent = null):void {
+			if(!video.isLoaded) {
+				trace("VÏDEO NAO ENCONTRADO");
+				dispatchEvent(e);
+				disable();
+				_listenerManager.removeAllEventListeners(video);
+				controlBar.pauseButton.visible = true;
+				controlBar.playButton.visible = false;
+			}
 		}
 		
 		private function _startLoading(e:MouseEvent = null):void {
@@ -296,7 +337,23 @@
 			screen.buttonMode = true;
 			_listenerManager.addEventListener(screen, MouseEvent.CLICK, playPause);
 			
+			if (autoHideBar) _onRollOver();
+			
 			timeout = setTimeout(_onStreamNotFound, timeout);
+		}
+		
+		private function _onRollOver(e:MouseEvent = null):void {
+			if(!screen.bigPlayIcon.visible && !controlBar.visible) {
+				controlBar.visible = true;
+				if(controlBar.alpha == 1) controlBar.alpha = 0
+				Tweener.addTween(controlBar, { alpha:1, time: .3, transition: "linear"} );
+			}
+		}
+		
+		private function _onRollOut(e:MouseEvent = null):void {
+			if (controlBar.visible) {
+				Tweener.addTween(controlBar, { alpha:0, time: .2, delay:.5 , transition: "linear", onComplete: function():void {controlBar.visible = false;}} );
+			}
 		}
 		
 		/**
@@ -389,7 +446,9 @@
 			
 		}
 		public function set volume(value:Number):void {
-			video.volume = value;
+			if (video != null) {
+				video.volume = value;
+			}
 		}
 		
 		public function get fullScreenMode():String { return _fullScreenMode; }

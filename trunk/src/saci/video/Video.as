@@ -40,6 +40,8 @@
 		private var _bmpImage:Bitmap;
 		private var _simpleLoader:SimpleLoader;
 		
+		public static var instancesCreated:int = 0;
+		
 		public static const FIRST_TIME_COMPLETE:String = "firstTimeComplete";
 		public static const FIRST_TIME_PLAY:String = "firstTimePlay";
 	
@@ -48,6 +50,7 @@
 		
 		public function Video() {
 			super();
+			_id = "Video-" + (instancesCreated++);
 			Logger.init(Logger.LOG_VERBOSE);
 		}
 		
@@ -133,6 +136,9 @@
 				_simpleLoader.destroy();
 				_simpleLoader = null;
 			}
+			
+			_completeCount = _playCount = 0;
+			
 		}
 		
 		/**
@@ -150,12 +156,13 @@
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_STREAMNOTFOUND, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.SEEK_INVALIDTIME, _forwardVideoEvent);
+			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.LOAD_COMPLETE, _forwardVideoEvent);
 			
 			_initImage();
 			
 			_ready = true;
 		}
-
+		
 		private function _initImage():void {
 			_imgHolder = new SaciSprite();
 			addChild(_imgHolder);
@@ -215,10 +222,9 @@
 		}
 		
 		private function _onVideoMetadata(e:VideoEvent):void {
-			//TODO: ver pq mesm ocom autostart true, ele não começa tocando depois do change.
 			_redneckVideoPlayer.stream.bufferTime = bufferTime;
 			seek(0);
-			if (autoStart && _redneckVideoPlayer.stream.bufferLength > bufferTime) {
+			if (autoStart && (_redneckVideoPlayer.stream.bufferLength > bufferTime || _redneckVideoPlayer.isLoaded)) {
 				play();
 			}
 			_redneckVideoPlayer.volume = volume;
@@ -226,7 +232,6 @@
 		
 		private function _onBufferFull(e:VideoEvent):void {
 			_forwardVideoEvent(e);
-			
 			if (_playCount == 0) {
 				dispatchEvent(new VideoEvent(FIRST_TIME_PLAY));
 				_playCount++;
@@ -277,7 +282,7 @@
 		public function get isLoaded():Boolean { return redneckVideoPlayer.isLoaded; }
 		public function get isMute():Boolean { return _isMute; }		
 		public function get flv():String { return _flv; }
-		public function get stram():NetStream{ return redneckVideoPlayer.stream; }
+		public function get stream():NetStream{ return redneckVideoPlayer.stream; }
 		public function get bufferLength():Number{ return redneckVideoPlayer.stream.bufferLength; }
 		
 		public function get autoStart():Boolean { return _autoStart; }
@@ -288,6 +293,9 @@
 		public function get volume():Number { return _volume; }
 		public function set volume(value:Number):void {
 			_volume = value;
+			if (_redneckVideoPlayer != null) {
+				_redneckVideoPlayer.volume = value;
+			}
 		}
 		
 		public function get image():String { return _image; }

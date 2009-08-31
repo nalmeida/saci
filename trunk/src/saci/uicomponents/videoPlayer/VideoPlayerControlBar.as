@@ -23,6 +23,10 @@
 			private var _rewindButton:Sprite;
 			private var _fullScreenButton:Sprite;
 			private var _normalScreenButton:Sprite;
+			private var _volumeBase:Sprite;
+				private var _sliderVolumeButton:Sprite;
+				private var _volumePercent:Sprite;
+				private var _volumeTrack:Sprite;
 			private var _muteButton:Sprite;
 			private var _unmuteButton:Sprite;
 			private var _timerButton:Sprite;
@@ -34,6 +38,7 @@
 				private var _timeTrack:Sprite;
 				private var _loadMask:Sprite;
 		
+		private var _volumeSlider:Slider;
 		private var _videoSlider:Slider;
 		private var _slidingVideo:Boolean = false;
 		
@@ -48,6 +53,10 @@
 				_rewindButton = _controlBar.getChildByName("rewindButton") as Sprite;
 				_fullScreenButton = _controlBar.getChildByName("fullScreenButton") as Sprite;
 				_normalScreenButton = _controlBar.getChildByName("normalScreenButton") as Sprite;
+				_volumeBase = _controlBar.getChildByName("volumeBase") as Sprite;
+					_sliderVolumeButton = _volumeBase.getChildByName("sliderVolumeButton") as Sprite;
+					_volumePercent = _volumeBase.getChildByName("volumePercent") as Sprite;
+					_volumeTrack = _volumeBase.getChildByName("volumeTrack") as Sprite;
 				_muteButton = _controlBar.getChildByName("muteButton") as Sprite;
 				_unmuteButton = _controlBar.getChildByName("unmuteButton") as Sprite;
 				_timerButton = _controlBar.getChildByName("timerButton") as Sprite;
@@ -57,6 +66,8 @@
 					_timeTrack = _progressBar.getChildByName("timeTrack") as Sprite;
 					_timeRail = _progressBar.getChildByName("timeRail") as Sprite;
 					_loadMask = _progressBar.getChildByName("loadMask") as Sprite;
+					
+			_volumeBase.visible = false;
 					
 			_createSlider();
 			_loadMask.scaleX = 0;
@@ -102,6 +113,14 @@
 			_listenerManager.addEventListener(_fullScreenButton, MouseEvent.CLICK, _openFullScreen);
 			_listenerManager.addEventListener(_normalScreenButton, MouseEvent.CLICK, _openNormalScreen);
 			
+			_listenerManager.addEventListener(_volumeBase, MouseEvent.ROLL_OVER, _openVolumeControl);
+			_listenerManager.addEventListener(_muteButton, MouseEvent.ROLL_OVER, _openVolumeControl);
+			_listenerManager.addEventListener(_unmuteButton, MouseEvent.ROLL_OVER, _openVolumeControl);
+			
+			_listenerManager.addEventListener(_volumeBase, MouseEvent.ROLL_OUT, _closeVolumeControl);
+			_listenerManager.addEventListener(_muteButton, MouseEvent.ROLL_OUT, _closeVolumeControl);
+			_listenerManager.addEventListener(_unmuteButton, MouseEvent.ROLL_OUT, _closeVolumeControl);
+			
 			fldTimer.text = "00:00";
 			addChild(_controlBar);
 			
@@ -109,8 +128,9 @@
 		}
 		
 		public function refresh():void {
-			_muteButton.x = _base.width - _muteButton.width;
-			_unmuteButton.x = _base.width - _unmuteButton.width;
+			_muteButton.x = 
+			_unmuteButton.x = 
+			_volumeBase.x = _base.width - _unmuteButton.width;
 			
 			_fullScreenButton.x = _muteButton.x - _fullScreenButton.width;
 			_normalScreenButton.x = _muteButton.x - _normalScreenButton.width;
@@ -133,6 +153,7 @@
 			_timeTrack.width = _timeRail.width;
 			
 			_videoSlider.refresh();
+			_volumeSlider.refresh();
 		}
 		
 		public function enableFullScreen():void {
@@ -179,6 +200,10 @@
 			_videoPlayer.seek(time, playAfter);
 		}
 		
+		public function seekVolume(volume:Number):void {
+			_volumeSlider.move(volume);
+		}
+		
 		/**
 		 * PRIVATE
 		 */
@@ -188,6 +213,9 @@
 			_listenerManager.addEventListener(_videoSlider, SliderEvent.ON_PRESS, _onPressVideoSlider);
 			_listenerManager.addEventListener(_videoSlider, SliderEvent.ON_RELEASE, _onReleaseVideoSlider);
 			_listenerManager.addEventListener(_videoSlider, SliderEvent.ON_CHANGE, _onSlideVideo);
+			
+			_volumeSlider = new Slider(_sliderVolumeButton, _volumeTrack, false);
+			_listenerManager.addEventListener(_volumeSlider, SliderEvent.ON_CHANGE, _onSlideVolume);
 		}
 		
 		private function _onPressVideoSlider(e:SliderEvent):void {
@@ -196,8 +224,30 @@
 		
 		private function _onReleaseVideoSlider(e:SliderEvent):void{
 			_slidingVideo = false;
-			
-			
+		}
+		
+		private function _onSlideVolume(e:SliderEvent):void {
+			var val:Number = (1 - _volumeSlider.percent);
+			_volumePercent.scaleY = val;
+			if (val <= 0) {
+				_mute();
+			} else {
+				_unMute();
+			}
+			if (_videoPlayer != null) {
+				_videoPlayer.volume = val;
+			}
+		}
+		
+		
+		private function _mute():void {
+			_muteButton.visible = false;
+			_unmuteButton.visible = true;
+		}
+		
+		private function _unMute():void {
+			_muteButton.visible = true;
+			_unmuteButton.visible = false;
 		}
 		
 		private function _onSlideVideo(e:SliderEvent):void {
@@ -225,6 +275,14 @@
 		private function _openNormalScreen(e:MouseEvent):void{
 			_fullScreenButton.visible = true;
 			_normalScreenButton.visible = false;
+		}
+		
+		private function _openVolumeControl(e:MouseEvent = null):void {
+			_volumeBase.visible = true;
+		}
+		
+		private function _closeVolumeControl(e:MouseEvent = null):void {
+			_volumeBase.visible = false;
 		}
 		
 		public function get base():Sprite { return _base; }
