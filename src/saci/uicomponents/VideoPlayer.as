@@ -37,6 +37,9 @@
 		private var _hasLayout:Boolean = false;
 		private var _controlInterval:uint;
 		private var _autoStarted:Boolean = false;
+		private var _volume:Number = 1;
+		private var _isMute:Boolean;
+		private var _oldVolume:Number = 1;
 		
 		/**
 		 * Elements
@@ -155,11 +158,19 @@
 		}
 		
 		public function mute():void {
+			_oldVolume = volume;
+			video.volume = 0;
 			controlBar.seekVolume(0);
+			_isMute = true;
 		}
 		
 		public function unMute():void {
-			//video.seek(time, playAfter);
+			
+			trace("[VideoPlayer.unMute] _oldVolume: " + _oldVolume);
+			
+			video.volume = _oldVolume;
+			controlBar.seekVolume(_oldVolume);
+			_isMute = false;
 		}
 		
 		/**
@@ -261,6 +272,8 @@
 				screen.hideBufferIcon();
 				controlBar.percentLoaded = 1;
 			}
+			
+			// volume
 		}
 		
 		/**
@@ -278,10 +291,16 @@
 			_listenerManager.addEventListener(video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
 			_listenerManager.addEventListener(video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
 			_listenerManager.addEventListener(video, Video.FIRST_TIME_PLAY, _forwardEvent);
+			
+			_listenerManager.addEventListener(_controlBar, VideoPlayerControlBar.VOLUME_CHANGED, _onVolumeChanged);
+		}
+		
+		private function _onVolumeChanged(e:Event):void {
+			video.volume = _controlBar.volume;
 		}
 		
 		private function _onLoadComplete(e:VideoEvent):void {
-			if(autoStart) {
+			if (autoStart) {
 				_autoStarted = true;
 				_startLoading();
 				_onBufferFull(e);
@@ -441,14 +460,23 @@
 			if (video != null) {
 				return video.volume; 
 			} else {
-				return 1;
+				return _volume;
 			}
 			
 		}
 		public function set volume(value:Number):void {
+			_volume = value;
 			if (video != null) {
+				if (value > 1) {
+					throw new Error("[ERROR] VideoPlayer volume MUST be > 0 and < 1");
+				}
 				video.volume = value;
+				controlBar.seekVolume(video.volume);
 			}
+		}
+		
+		public function updateOldVolume(value:Number):void {
+			_oldVolume = value;
 		}
 		
 		public function get fullScreenMode():String { return _fullScreenMode; }
@@ -472,6 +500,8 @@
 		public function set timeout(value:int):void {
 			_timeout = value;
 		}
+		
+		public function get isMute():Boolean { return _isMute; }
 		
 	}
 	
