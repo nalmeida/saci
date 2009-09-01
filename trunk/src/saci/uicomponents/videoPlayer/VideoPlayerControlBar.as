@@ -1,6 +1,7 @@
 ﻿package saci.uicomponents.videoPlayer {
 	
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import redneck.events.SliderEvent;
@@ -41,11 +42,13 @@
 		private var _volumeSlider:Slider;
 		private var _videoSlider:Slider;
 		private var _slidingVideo:Boolean = false;
+		private var _volume:Number;
+		
+		public static const VOLUME_CHANGED:String = "volumeChanged";
 		
 		public function VideoPlayerControlBar($videoPlayer:VideoPlayer, $skin:Sprite) {
 			_skin = $skin;
 			_videoPlayer = $videoPlayer;
-			
 			_controlBar = _skin.getChildByName("controlBar") as Sprite;
 				_base = _controlBar.getChildByName("base") as Sprite;
 				_playButton = _controlBar.getChildByName("playButton") as Sprite;
@@ -68,6 +71,7 @@
 					_loadMask = _progressBar.getChildByName("loadMask") as Sprite;
 					
 			_volumeBase.visible = false;
+			_volumePercent.mouseEnabled = false;
 					
 			_createSlider();
 			_loadMask.scaleX = 0;
@@ -152,8 +156,8 @@
 			
 			_timeTrack.width = _timeRail.width;
 			
-			_videoSlider.refresh();
 			_volumeSlider.refresh();
+			_videoSlider.refresh();
 		}
 		
 		public function enableFullScreen():void {
@@ -200,8 +204,10 @@
 			_videoPlayer.seek(time, playAfter);
 		}
 		
-		public function seekVolume(volume:Number):void {
-			_volumeSlider.move(volume);
+		public function seekVolume(value:Number):void {
+			_volumePercent.y = _sliderVolumeButton.y = _volumeTrack.height * (1 - value);
+			_volumePercent.height = (_volumeTrack.height * value) + _sliderVolumeButton.height - 1;
+			volume = value;
 		}
 		
 		/**
@@ -215,30 +221,23 @@
 			_listenerManager.addEventListener(_videoSlider, SliderEvent.ON_CHANGE, _onSlideVideo);
 			
 			_volumeSlider = new Slider(_sliderVolumeButton, _volumeTrack, false);
+			
+			_volumeSlider.seek = true;
 			_listenerManager.addEventListener(_volumeSlider, SliderEvent.ON_CHANGE, _onSlideVolume);
-		}
-		
-		private function _onPressVideoSlider(e:SliderEvent):void {
-			_slidingVideo = true;
-		}
-		
-		private function _onReleaseVideoSlider(e:SliderEvent):void{
-			_slidingVideo = false;
+			
+			if(_videoPlayer.volume != _volume) {
+				seekVolume(_videoPlayer.volume);
+			}
 		}
 		
 		private function _onSlideVolume(e:SliderEvent):void {
-			var val:Number = (1 - _volumeSlider.percent);
-			_volumePercent.scaleY = val;
-			if (val <= 0) {
-				_mute();
-			} else {
-				_unMute();
-			}
-			if (_videoPlayer != null) {
-				_videoPlayer.volume = val;
-			}
+			volume = (1 - _volumeSlider.percent);
+			
+			_volumePercent.y = _sliderVolumeButton.y;
+			_volumePercent.height = _volumeTrack.height - _sliderVolumeButton.y + _volumeTrack.y;
+
+			dispatchEvent(new Event(VOLUME_CHANGED));
 		}
-		
 		
 		private function _mute():void {
 			_muteButton.visible = false;
@@ -248,6 +247,14 @@
 		private function _unMute():void {
 			_muteButton.visible = true;
 			_unmuteButton.visible = false;
+		}
+		
+		private function _onPressVideoSlider(e:SliderEvent):void {
+			_slidingVideo = true;
+		}
+		
+		private function _onReleaseVideoSlider(e:SliderEvent):void{
+			_slidingVideo = false;
 		}
 		
 		private function _onSlideVideo(e:SliderEvent):void {
@@ -266,7 +273,6 @@
 			}
 		}
 
-		
 		private function _openFullScreen(e:MouseEvent):void {
 			_fullScreenButton.visible = false;
 			_normalScreenButton.visible = true;
@@ -314,8 +320,17 @@
 		}
 		
 		public function get sliderButton():Sprite { return _sliderButton; }
-		
 		public function get timeTrack():Sprite { return _timeTrack; }
+		
+		public function get volume():Number { return _volume; }
+		public function set volume(value:Number):void {
+			_volume = value;
+			if (volume <= 0) {
+				_mute();
+			} else {
+				_unMute();
+			}
+		}
 		
 	}
 	
