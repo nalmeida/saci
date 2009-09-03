@@ -48,9 +48,12 @@
 		public static const IMAGE_PREVIEW_COMPLETE:String = "imagePreviewComplete";
 		public static const IMAGE_PREVIEW_ERROR:String = "imagePreviewError";
 		
-		public function Video() {
+		public function Video($id:String = null) {
 			super();
-			_id = "Video-" + (instancesCreated++);
+			if($id == null )
+				_id = "Video-" + (instancesCreated++);
+			else 
+				_id = $id;
 			Logger.init(Logger.LOG_VERBOSE);
 		}
 		

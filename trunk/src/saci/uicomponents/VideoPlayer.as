@@ -20,35 +20,40 @@
 	/**
 	 * @author Nicholas Almeida
 	 */
+	
+	//TODO: Fazer o player fcar desabilitado antes de dar um load, loadPlaylist ou change
+	//TODO: Separar as classes de slidre de "volume" e slider de "track"
+	
 	public class VideoPlayer extends SaciSprite {
 		
-		private var _width:Number = 320;
-		private var _height:Number = 272;
-		private var _autoHideBar:Boolean = false;
-		private var _image:String;
-		private var _flv:String;
-		private var _autoStart:Boolean;
-		private var _stretching:Boolean = false;
-		private var _fullScreenEnabled:Boolean = false;
-		private var _timerEnabled:Boolean = true;
-		private var _fullScreenMode:String = "normal"; // normal or fullscreen
-		private var _timeout:int = 5000; // time in miliseconds
+		protected var _width:Number = 320;
+		protected var _height:Number = 272;
+		protected var _autoHideBar:Boolean = false;
+		protected var _image:String;
+		protected var _flv:String;
+		protected var _autoStart:Boolean;
+		protected var _stretching:Boolean = false;
+		protected var _fullScreenEnabled:Boolean = false;
+		protected var _timerEnabled:Boolean = true;
+		protected var _fullScreenMode:String = "normal"; // normal or fullscreen
+		protected var _timeout:int = 5000; // time in miliseconds
 		
-		private var _hasLayout:Boolean = false;
-		private var _controlInterval:uint;
-		private var _autoStarted:Boolean = false;
-		private var _volume:Number = 1;
-		private var _isMute:Boolean;
-		private var _oldVolume:Number = 1;
+		protected var _hasLayout:Boolean = false;
+		protected var _controlInterval:uint;
+		protected var _autoStarted:Boolean = false;
+		protected var _volume:Number = 1;
+		protected var _isMute:Boolean;
+		protected var _oldVolume:Number = 1;
 		
 		/**
 		 * Elements
 		 */
-		private var _skin:Sprite;
-		private var _video:Video;
+		protected var _skin:Sprite;
+		protected var _video:Video;
 		
-		private var _screen:VideoPlayerScreen;
-		private var _controlBar:VideoPlayerControlBar;
+		protected var _screen:VideoPlayerScreen;
+		protected var _controlBar:VideoPlayerControlBar;
+		protected var _current:String;
 		
 		/**
 		 * Events
@@ -66,17 +71,17 @@
 		public function refresh():void {
 			if (_hasLayout) {
 				
-				screen.base.width = _width;
+				screen.blocker.width = screen.base.width = _width;
 				
 				if (autoHideBar) {
-					screen.base.height = _height;
-					controlBar.y = screen.base.height - controlBar.height;
+					screen.blocker.height = screen.base.height = _height;
+					controlBar.y = screen.base.height - controlBar.base.height;
 					controlBar.visible = false;
 					_listenerManager.addEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
 					_listenerManager.addEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
 					_listenerManager.addEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
 				} else {
-					screen.base.height = _height - controlBar.base.height;
+					screen.blocker.height = screen.base.height = _height - controlBar.base.height;
 					controlBar.y = screen.base.height;
 				}
 				screen.bigPlayIcon.x = screen.bufferIcon.x = screen.base.width * .5;
@@ -113,8 +118,10 @@
 				//autoStart = false;
 			//}
 			_autoStarted = false;
+			_current = video.id;
 			_flv = flvFile;
 			_video.load(flv);
+
 		}
 		
 		public function load(flvFile:String):void {
@@ -165,9 +172,6 @@
 		}
 		
 		public function unMute():void {
-			
-			trace("[VideoPlayer.unMute] _oldVolume: " + _oldVolume);
-			
 			video.volume = _oldVolume;
 			controlBar.seekVolume(_oldVolume);
 			_isMute = false;
@@ -177,7 +181,7 @@
 		 * PRIVATE
 		 */
 		
-		private function _createLayoutElements():void {
+		protected function _createLayoutElements():void {
 			
 			if (!_hasLayout) {
 				
@@ -211,7 +215,7 @@
 			}
 		}
 		
-		private function _resizeVideo():void {
+		protected function _resizeVideo():void {
 			
 			if (stretching) {
 				_video.width = _width;
@@ -225,7 +229,7 @@
 			}
 		}
 		
-		private function _controlAll():void {
+		protected function _controlAll():void {
 			//video.mute();
 			
 			if (video.duration > 0) {
@@ -279,12 +283,13 @@
 		/**
 		 * LISTENERS
 		 */
-		private function _addListeners():void {
+		protected function _addListeners():void {
 			mouseChildren = false;
 			buttonMode = true;
 			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
 			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
 			
+			_listenerManager.addEventListener(video, VideoEvent.COMPLETE, _onComplete);
 			_listenerManager.addEventListener(video, VideoEvent.LOAD_COMPLETE, _onLoadComplete);
 			_listenerManager.addEventListener(video, VideoEvent.BUFFER_FULL, _onBufferFull);
 			_listenerManager.addEventListener(video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
@@ -295,11 +300,15 @@
 			_listenerManager.addEventListener(_controlBar, VideoPlayerControlBar.VOLUME_CHANGED, _onVolumeChanged);
 		}
 		
-		private function _onVolumeChanged(e:Event):void {
+		protected function _onComplete(e:VideoEvent):void{
+			_forwardEvent(e);
+		}
+		
+		protected function _onVolumeChanged(e:Event):void {
 			video.volume = _controlBar.volume;
 		}
 		
-		private function _onLoadComplete(e:VideoEvent):void {
+		protected function _onLoadComplete(e:VideoEvent):void {
 			if (autoStart) {
 				_autoStarted = true;
 				_startLoading();
@@ -307,29 +316,29 @@
 			}
 		}
 		
-		private function _removeListeners():void {
+		protected function _removeListeners():void {
 			_listenerManager.removeAllEventListeners(this);
 			_listenerManager.removeAllEventListeners(video);
 		}
 		
-		private function _forwardEvent(e:*):void {
+		protected function _forwardEvent(e:*):void {
 			dispatchEvent(e);
 		}
 		
-		private function _onBufferEmpty(e:VideoEvent):void {
+		protected function _onBufferEmpty(e:VideoEvent):void {
 			if(!video.redneckVideoPlayer.isLoaded) {
 				screen.showBufferIcon();
 				screen.disable();
 			}
 		}
 		
-		private function _onBufferFull(e:VideoEvent):void {
+		protected function _onBufferFull(e:VideoEvent):void {
 			screen.hideBufferIcon();
 			screen.enable();
 			if (_video.isPaused || _video.isStoped) play();
 		}
 		
-		private function _onStreamNotFound(e:VideoEvent = null):void {
+		protected function _onStreamNotFound(e:VideoEvent = null):void {
 			if(!video.isLoaded) {
 				trace("VÏDEO NAO ENCONTRADO");
 				dispatchEvent(e);
@@ -340,7 +349,7 @@
 			}
 		}
 		
-		private function _startLoading(e:MouseEvent = null):void {
+		protected function _startLoading(e:MouseEvent = null):void {
 			refresh();
 			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
 				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
@@ -361,16 +370,16 @@
 			timeout = setTimeout(_onStreamNotFound, timeout);
 		}
 		
-		private function _onRollOver(e:MouseEvent = null):void {
-			if(!screen.bigPlayIcon.visible && !controlBar.visible) {
+		protected function _onRollOver(e:MouseEvent = null):void {
+			if(!screen.bigPlayIcon.visible && !controlBar.visible && !screen.blocked) {
 				controlBar.visible = true;
 				if(controlBar.alpha == 1) controlBar.alpha = 0
 				Tweener.addTween(controlBar, { alpha:1, time: .3, transition: "linear"} );
 			}
 		}
 		
-		private function _onRollOut(e:MouseEvent = null):void {
-			if (controlBar.visible) {
+		protected function _onRollOut(e:MouseEvent = null):void {
+			if (controlBar.visible && !screen.blocked) {
 				Tweener.addTween(controlBar, { alpha:0, time: .2, delay:.5 , transition: "linear", onComplete: function():void {controlBar.visible = false;}} );
 			}
 		}
@@ -502,6 +511,7 @@
 		}
 		
 		public function get isMute():Boolean { return _isMute; }
+		public function get current():String { return _current; }
 		
 	}
 	
