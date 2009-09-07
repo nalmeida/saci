@@ -1,9 +1,13 @@
 ﻿package saci.uicomponents {
 	
+	import flash.events.Event;
 	import flash.utils.setInterval;
 	import redneck.events.VideoEvent;
 	import saci.uicomponents.videoPlayer.VideoInfoVO;
 	import saci.uicomponents.VideoPlayer;
+	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
+	import saci.uicomponents.videoPlayer.VideoPlayerScreenList;
+	import saci.video.Video;
 	
 	/**
 	 * @author Nicholas Almeida
@@ -25,13 +29,13 @@
 		
 		public function next():void {
 			_currentIndex ++;
-			if (_currentIndex > _arrMedia.length) _currentIndex = 0;
+			if (_currentIndex >= _arrMedia.length) _currentIndex = 0;
 			_loadVideo();
 		}
 		
 		public function previous():void {
 			_currentIndex --;
-			if (_currentIndex < 0) _currentIndex = _arrMedia.length;
+			if (_currentIndex < 0) _currentIndex = _arrMedia.length - 1;
 			_loadVideo();
 		}
 		
@@ -51,6 +55,10 @@
 			}
 		}
 		
+		/**
+		 * 
+		 * @param	playlist XML, XMLList or String
+		 */
 		public function loadPlayList(playlist:*):void {
 			_playlist = new XML(playlist);
 			
@@ -68,16 +76,18 @@
 				add(info);
 			}
 			
+			screen.playlist = _playlist;
+			
 			_loadVideo();
 			_controlInterval = setInterval(_controlAll, 100);
 		}
 		
 		public function showList():void {
-			screen.showBlocker();
+			screen.showList();
 		}
 		
 		public function hideList():void {
-			
+			screen.hideList();
 		}
 		
 		/**
@@ -86,7 +96,64 @@
 		
 		override protected function _onComplete(e:VideoEvent):void {
 			super._onComplete(e);
-			showList();
+			if (_arrMedia.length > 1) {
+				showList();
+			}
+		}
+		
+		override public function play(e:Event = null):void {
+			if (screen.blocked) screen.hideList();
+			super.play(e);
+		}
+		
+		override public function refresh():void {
+			super.refresh();
+			screen.blocker.width = screen.base.width;
+			
+			if (autoHideBar) {
+				screen.blocker.height = screen.base.height
+			} else {
+				screen.blocker.height = screen.base.height;
+			}
+		}
+		
+		override protected function _removeListSprites():void {
+			// DO NOT REMOVE!
+		}
+		
+		override protected function _createLayoutElements():void {
+			
+			if (!_hasLayout) {
+				
+				_screen = new VideoPlayerScreenList(this, _skin);
+				_controlBar = new VideoPlayerControlBar(this, _skin);
+				_video = new Video();
+				_video.autoStart = autoStart;
+				
+				screen.videoHolder.addChild(_video);
+				
+				/* BAR */
+				if (_fullScreenEnabled) {
+					_controlBar.enableFullScreen();
+				} else {
+					_controlBar.disableFullScreen();
+				}
+				if (_timerEnabled) {
+					_controlBar.enableTimer();
+				} else {
+					_controlBar.disableTimer();
+				}
+				
+				addChild(_screen);
+				addChild(_controlBar);
+				
+				_addListeners();
+				_removeListSprites();
+				
+				_hasLayout = true;
+				
+				refresh();
+			}
 		}
 		
 		/**
@@ -103,6 +170,8 @@
 		 * GETTERS ans SETTERS
 		 */
 		public function get currentIndex():int { return _currentIndex; }
+		public function get playlist():XML { return _playlist; }
+		public function get arrMedia():Array { return _arrMedia; }
 	}
 	
 }

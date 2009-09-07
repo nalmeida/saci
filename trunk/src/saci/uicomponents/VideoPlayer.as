@@ -21,8 +21,9 @@
 	 * @author Nicholas Almeida
 	 */
 	
-	//TODO: Fazer o player fcar desabilitado antes de dar um load, loadPlaylist ou change
+	//TODO: Fazer o player ficar desabilitado antes de dar um load, loadPlaylist ou change
 	//TODO: Separar as classes de slidre de "volume" e slider de "track"
+	//TODO: Parse do XML de configuração <root> <player> ...
 	
 	public class VideoPlayer extends SaciSprite {
 		
@@ -44,6 +45,7 @@
 		protected var _volume:Number = 1;
 		protected var _isMute:Boolean;
 		protected var _oldVolume:Number = 1;
+		protected var _proportion:String = "smaller";
 		
 		/**
 		 * Elements
@@ -51,7 +53,7 @@
 		protected var _skin:Sprite;
 		protected var _video:Video;
 		
-		protected var _screen:VideoPlayerScreen;
+		protected var _screen:*;
 		protected var _controlBar:VideoPlayerControlBar;
 		protected var _current:String;
 		
@@ -71,30 +73,23 @@
 		public function refresh():void {
 			if (_hasLayout) {
 				
-				screen.blocker.width = screen.base.width = _width;
+				_screen.refresh();
 				
 				if (autoHideBar) {
-					screen.blocker.height = screen.base.height = _height;
 					controlBar.y = screen.base.height - controlBar.base.height;
 					controlBar.visible = false;
 					_listenerManager.addEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
 					_listenerManager.addEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
 					_listenerManager.addEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
 				} else {
-					screen.blocker.height = screen.base.height = _height - controlBar.base.height;
 					controlBar.y = screen.base.height;
 				}
-				screen.bigPlayIcon.x = screen.bufferIcon.x = screen.base.width * .5;
-				screen.bigPlayIcon.y = screen.bufferIcon.y = screen.base.height * .5;
 				
 				controlBar.pauseButton.visible = false;
 				controlBar.playButton.visible = true;
 				
 				_resizeVideo();
-				
 				_controlBar.refresh();
-				
-				controlBar.base.width = screen.width;
 			}
 		}
 		
@@ -208,6 +203,7 @@
 				addChild(_controlBar);
 				
 				_addListeners();
+				_removeListSprites();
 				
 				_hasLayout = true;
 				
@@ -222,7 +218,7 @@
 				_video.height = _height;
 			} else {
 				
-				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height);
+				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height, _proportion);
 				
 				_video.x = (screen.base.width * .5) - (video.width * .5);
 				_video.y = (screen.base.height * .5) - (video.height * .5);
@@ -363,7 +359,7 @@
 			play();
 			
 			screen.buttonMode = true;
-			_listenerManager.addEventListener(screen, MouseEvent.CLICK, playPause);
+			_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
 			
 			if (autoHideBar) _onRollOver();
 			
@@ -384,17 +380,20 @@
 			}
 		}
 		
+		protected function _removeListSprites():void {
+		}
+		
 		/**
 		 * OVERRIDE
 		 */
 		
-		override public function get width():Number { return super.width; }
+		override public function get width():Number { return _width; }
 		override public function set width(value:Number):void {
 			_width = value;
 			refresh();
 		}
 		
-		override public function get height():Number { return super.height; }
+		override public function get height():Number { return _height; }
 		override public function set height(value:Number):void {
 			_height = value;
 			refresh();
@@ -444,7 +443,7 @@
 		}
 		
 		public function get video():Video { return _video; }
-		public function get screen():VideoPlayerScreen { return _screen; }
+		public function get screen():* { return _screen; }
 		public function get controlBar():VideoPlayerControlBar { return _controlBar; }
 		
 		public function get fullScreenEnabled():Boolean { return _fullScreenEnabled; }
@@ -512,6 +511,7 @@
 		
 		public function get isMute():Boolean { return _isMute; }
 		public function get current():String { return _current; }
+		public function get hasLayout():Boolean { return _hasLayout; }
 		
 	}
 	
