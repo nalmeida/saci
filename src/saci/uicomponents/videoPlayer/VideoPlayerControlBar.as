@@ -132,6 +132,7 @@
 		}
 		
 		public function refresh():void {
+			base.width = _videoPlayer.screen.width;
 			_muteButton.x = 
 			_unmuteButton.x = 
 			_volumeBase.x = _base.width - _unmuteButton.width;

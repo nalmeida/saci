@@ -5,6 +5,7 @@
 	import flash.display.MovieClip;
 	import saci.events.ListenerManager;
 	import saci.interfaces.IDestroyable;
+	import flash.geom.Rectangle;
 	
 	/**
 	 * Classe com utilidades para elementos visuais como SaciSprite, Sprite, Movieclip, etc.
@@ -144,6 +145,34 @@
 					object.height = objectHeight;
 				}
 			}
+		}
+		
+		/**
+		 * duplicateDisplayObject
+		 * creates a duplicate of the DisplayObject passed. similar to duplicateMovieClip in AVM1.
+		 * @param target the display object to duplicate
+		 * @param autoAdd if true, adds the duplicate to the display list in which target was located
+		 * @return a duplicate instance of target
+		 * @see http://www.kirupa.com/forum/showthread.php?p=1939827
+		 */
+		public static function duplicateDisplayObject(target:DisplayObject):DisplayObject {
+			// create duplicate
+			var targetClass:Class = Object(target).constructor;
+			var duplicate:DisplayObject = new targetClass();
+			
+			// duplicate properties
+			duplicate.transform = target.transform;
+			duplicate.filters = target.filters;
+			duplicate.cacheAsBitmap = target.cacheAsBitmap;
+			duplicate.opaqueBackground = target.opaqueBackground;
+			if (target.scale9Grid) {
+				var rect:Rectangle = target.scale9Grid;
+				// WAS Flash 9 bug where returned scale9Grid is 20x larger than assigned
+				// rect.x /= 20, rect.y /= 20, rect.width /= 20, rect.height /= 20;
+				duplicate.scale9Grid = rect;
+			}
+			
+			return duplicate;
 		}
 		
 	}
