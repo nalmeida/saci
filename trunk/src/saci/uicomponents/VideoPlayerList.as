@@ -1,6 +1,7 @@
 ﻿package saci.uicomponents {
 	
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.utils.setInterval;
 	import redneck.events.VideoEvent;
 	import saci.uicomponents.videoPlayer.VideoInfoVO;
@@ -16,10 +17,16 @@
 		
 		protected var _playlist:XML;
 		protected var _currentIndex:int = 0;
+		protected var _arrPages:Array;
+		protected var _arrPagination:Array;
 		protected var _arrMedia:Array;
+		protected var _pagination:int = 2;
+		protected var _totalPages:int;
+		protected var _currentPage:int = 0;
 		
 		public function VideoPlayerList() {
 			_arrMedia = [];
+			_arrPages = [];
 			super();
 		}
 		
@@ -62,6 +69,10 @@
 		public function loadPlayList(playlist:*):void {
 			_playlist = new XML(playlist);
 			
+			if(_playlist.config.pagination != undefined && _playlist.config.pagination != "") {
+				_pagination = int(_playlist.config.pagination);
+			}
+			
 			var len:int = _playlist.media.length();
 			for (var i:int = 0; i < len; i++) {
 				var info:VideoInfoVO = new VideoInfoVO(
@@ -78,16 +89,60 @@
 			
 			screen.playlist = _playlist;
 			
+			_totalPages = Math.ceil(len / _pagination);
+			
+			for (var j:int = 0; j < len; j+=_pagination) {
+				var tmpArr:Array = [];
+				for (var k:int = j; k < j + _pagination; k++) {
+					if (arrMedia[k] == null) break;
+					tmpArr[tmpArr.length] = arrMedia[k];
+				}
+				_arrPages[_arrPages.length] = tmpArr;
+				
+			}
+			
+			screen.listPrevious.visible = false;
+			
+			if (_totalPages <= 1) {
+				screen.listNext.visible = false;
+			}
+			
 			_loadVideo();
 			_controlInterval = setInterval(_controlAll, 100);
 		}
 		
 		public function showList():void {
+			screen.createList();
 			screen.showList();
 		}
 		
 		public function hideList():void {
+			screen.destroyList();
 			screen.hideList();
+		}
+		
+		public function nextList(e:MouseEvent):void {
+			_currentPage++;
+			if (_currentPage >= _totalPages-1) {
+				_currentPage = _totalPages-1;
+				screen.listNext.visible = false;
+			} else {
+				screen.listNext.visible = true;
+			}
+			screen.listPrevious.visible = true;
+			screen.createList();
+		}
+		
+		public function prevList(e:MouseEvent):void{
+			_currentPage--;
+			if (_currentPage <= 0) {
+				_currentPage = 0;
+				screen.listPrevious.visible = false;
+			} else {
+				screen.listPrevious.visible = true;
+			}
+			screen.listNext.visible = true;
+			screen.createList();
 		}
 		
 		/**
@@ -161,7 +216,8 @@
 		 */
 		
 		protected function _loadVideo():void {
-			_current = video.id = _arrMedia[_currentIndex].id;
+			hideList();
+			_id = video.id = _arrMedia[_currentIndex].id;
 			video.image = _arrMedia[_currentIndex].img;
 			change(_arrMedia[_currentIndex].flv);
 		}
@@ -172,6 +228,10 @@
 		public function get currentIndex():int { return _currentIndex; }
 		public function get playlist():XML { return _playlist; }
 		public function get arrMedia():Array { return _arrMedia; }
+		public function get pagination():int { return _pagination; }
+		public function get totalPages():int { return _totalPages; }
+		public function get arrPages():Array { return _arrPages; }
+		public function get currentPage():int { return _currentPage; }
 	}
 	
 }
