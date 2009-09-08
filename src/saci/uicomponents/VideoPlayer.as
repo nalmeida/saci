@@ -23,7 +23,7 @@
 	
 	//TODO: Fazer o player ficar desabilitado antes de dar um load, loadPlaylist ou change
 	//TODO: Separar as classes de slidre de "volume" e slider de "track"
-	//TODO: Parse do XML de configuração <root> <player> ...
+	//TODO: fullscreen
 	
 	public class VideoPlayer extends SaciSprite {
 		
@@ -55,7 +55,7 @@
 		
 		protected var _screen:*;
 		protected var _controlBar:VideoPlayerControlBar;
-		protected var _current:String;
+		protected var _id:String;
 		
 		/**
 		 * Events
@@ -113,7 +113,7 @@
 				//autoStart = false;
 			//}
 			_autoStarted = false;
-			_current = video.id;
+			_id = video.id;
 			_flv = flvFile;
 			_video.load(flv);
 
@@ -218,7 +218,7 @@
 				_video.height = _height;
 			} else {
 				
-				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height, _proportion);
+				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height, proportion);
 				
 				_video.x = (screen.base.width * .5) - (video.width * .5);
 				_video.y = (screen.base.height * .5) - (video.height * .5);
@@ -336,7 +336,7 @@
 		
 		protected function _onStreamNotFound(e:VideoEvent = null):void {
 			if(!video.isLoaded) {
-				trace("VÏDEO NAO ENCONTRADO");
+				Logger.logError("[VideoPlayer._onStreamNotFound] video: \"" + flv +  "\" not found");
 				dispatchEvent(e);
 				disable();
 				_listenerManager.removeAllEventListeners(video);
@@ -510,8 +510,13 @@
 		}
 		
 		public function get isMute():Boolean { return _isMute; }
-		public function get current():String { return _current; }
+		public function get id():String { return _id; }
 		public function get hasLayout():Boolean { return _hasLayout; }
+		
+		public function get proportion():String { return _proportion; }
+		public function set proportion(value:String):void {
+			_proportion = value;
+		}
 		
 	}
 	

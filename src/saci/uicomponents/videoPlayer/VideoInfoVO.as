@@ -22,7 +22,7 @@
 		}
 		
 		public function toString():String {
-			return "[VideoInfoVO] id: " + id + "; flv: " + flv + "; img: " + img + "; thumbImg: " + thumbImg + "; title: " + title + "; description: " + description + "; ";
+			return "[VideoInfoVO] id: " + id;
 		}
 		
 		public function get id():String { return _id; }

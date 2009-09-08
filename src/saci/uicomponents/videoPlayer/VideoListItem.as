@@ -92,6 +92,7 @@
 			Logger.logError("[VideoListItem._onLoadError] Unable to load: " + _info.thumbImg);
 			_image.visible = 
 			_imageMask.visible = false;
+			destroy();
 		}
 
 		public function _onLoadComplete(e:Event):void {
@@ -100,6 +101,15 @@
 			_image.addChild(_bmp);
 			_image.mask = _imageMask;
 			DisplayUtil.scaleProportionally(_image, _imageMask.width, _imageMask.height, "bigger");
+			destroy();
+		}
+		
+		public function destroy():void {
+			if(_loader != null) {
+				_listenerManager.removeAllEventListeners(_loader);
+				_loader.destroy();
+				_loader = null;
+			}
 		}
 		
 		/**
