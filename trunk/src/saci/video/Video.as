@@ -61,8 +61,10 @@
 		 * PUBLIC
 		 */
 		public function rewind():void {
-			redneckVideoPlayer.seek(0, false);
-			dispatchEvent(new VideoEvent(VideoEvent.REWIND));
+			if(redneckVideoPlayer != null) {
+				redneckVideoPlayer.seek(0, false);
+				dispatchEvent(new VideoEvent(VideoEvent.REWIND));
+			}
 		}
 		
 		public function seek(time:Number, playAfter:Boolean = false):void {
@@ -70,8 +72,10 @@
 		}
 		
 		public function stop():void {
-			redneckVideoPlayer.stop();
-			dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
+			if(redneckVideoPlayer != null) {
+				redneckVideoPlayer.stop();
+				dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
+			}
 		}
 		
 		public function playPause():void {

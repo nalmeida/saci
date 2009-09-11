@@ -217,6 +217,8 @@
 		
 		protected function _loadVideo():void {
 			hideList();
+			dispose();
+			
 			_id = video.id = _arrMedia[_currentIndex].id;
 			video.image = _arrMedia[_currentIndex].img;
 			change(_arrMedia[_currentIndex].flv);
