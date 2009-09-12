@@ -46,6 +46,7 @@
 		protected var _isMute:Boolean;
 		protected var _oldVolume:Number = 1;
 		protected var _proportion:String = "smaller";
+		protected var _bufferTime:Number;
 		
 		/**
 		 * Elements
@@ -184,6 +185,7 @@
 				_controlBar = new VideoPlayerControlBar(this, _skin);
 				_video = new Video();
 				_video.autoStart = autoStart;
+				_video.bufferTime = bufferTime;
 				
 				screen.videoHolder.addChild(_video);
 				
@@ -201,6 +203,10 @@
 				
 				addChild(_screen);
 				addChild(_controlBar);
+				
+				if (autoStart) {
+					screen.hideBigPlayIcon();
+				}
 				
 				_addListeners();
 				_removeListSprites();
@@ -237,9 +243,11 @@
 			switch(video.status) {
 				case "stop" :
 				
-					if (autoStart && (_video.bufferLength  >= bufferTime) && !_autoStarted) {
-						play();
+					if (autoStart && (_video.bufferLength  >= _video.bufferTime) && !_autoStarted) {
 						_autoStarted = true;
+						setTimeout(function():void {
+							_startLoading();
+						}, 1000);
 					}
 				
 					controlBar.pauseButton.visible = false;
@@ -305,7 +313,7 @@
 		}
 		
 		protected function _onLoadComplete(e:VideoEvent):void {
-			if (autoStart) {
+			if (autoStart && !_autoStarted) {
 				_autoStarted = true;
 				_startLoading();
 				_onBufferFull(e);
@@ -346,6 +354,8 @@
 		}
 		
 		protected function _startLoading(e:MouseEvent = null):void {
+			video.bufferTime = bufferTime;
+			
 			refresh();
 			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
 				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
@@ -499,9 +509,9 @@
 			}
 		}
 		
-		public function get bufferTime():Number { return video.bufferTime; }
+		public function get bufferTime():Number { return _bufferTime; }
 		public function set bufferTime(value:Number):void {
-			video.bufferTime = value;
+			_bufferTime = value;
 		}
 		
 		public function get timeout():int { return _timeout; }

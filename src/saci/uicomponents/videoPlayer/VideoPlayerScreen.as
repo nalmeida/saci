@@ -32,7 +32,9 @@
 				_bufferIcon = _screen.getChildByName("bufferIcon") as MovieClip;
 				_bigPlayIcon = _screen.getChildByName("bigPlayIcon") as Sprite;
 			
-			hideBufferIcon();
+			if (_videoPlayer.autoStart) hideBigPlayIcon();
+			else hideBufferIcon();
+			
 
 			_bigPlayIcon.mouseChildren = 
 			_bigPlayIcon.mouseEnabled = 
