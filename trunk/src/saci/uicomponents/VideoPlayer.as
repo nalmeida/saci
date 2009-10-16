@@ -339,7 +339,7 @@
 		protected function _onBufferFull(e:VideoEvent):void {
 			screen.hideBufferIcon();
 			screen.enable();
-			if (_video.isPaused || _video.isStoped) play();
+			if (video.isPlaying && _video.isPaused || _video.isStoped) play();
 		}
 		
 		protected function _onStreamNotFound(e:VideoEvent = null):void {
