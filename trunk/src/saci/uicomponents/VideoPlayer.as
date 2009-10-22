@@ -39,6 +39,7 @@
 		protected var _fullScreenMode:String = "normal"; // normal or fullscreen
 		protected var _timeout:int = 5000; // time in miliseconds
 		
+		protected var _hasAlreadyStartedLoading:Boolean = false;
 		protected var _hasLayout:Boolean = false;
 		protected var _controlInterval:uint;
 		protected var _autoStarted:Boolean = false;
@@ -113,6 +114,7 @@
 			//} else {
 				//autoStart = false;
 			//}
+			_hasAlreadyStartedLoading = true;
 			_autoStarted = false;
 			_id = video.id;
 			_flv = flvFile;
@@ -354,8 +356,6 @@
 		}
 		
 		protected function _startLoading(e:MouseEvent = null):void {
-			video.bufferTime = bufferTime;
-			
 			refresh();
 			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
 				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
@@ -366,14 +366,23 @@
 			
 			mouseChildren = true;
 			buttonMode = false;
-			play();
 			
 			screen.buttonMode = true;
 			_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
 			
 			if (autoHideBar) _onRollOver();
 			
-			timeout = setTimeout(_onStreamNotFound, timeout);
+			if (!_hasAlreadyStartedLoading) {
+				_autoStart = true;
+				load(flv);
+				_startLoading();
+			} else {
+				video.bufferTime = bufferTime;
+				setTimeout(play, 200);
+				timeout = setTimeout(_onStreamNotFound, timeout);
+			}
+			
+			
 		}
 		
 		protected function _onRollOver(e:MouseEvent = null):void {
@@ -430,6 +439,7 @@
 		}
 		
 		public function get flv():String { return _flv; }
+		public function set flv(value:String):void { _flv = value; }
 		
 		public function get stretching():Boolean { return _stretching; }
 		public function set stretching(value:Boolean):void {
