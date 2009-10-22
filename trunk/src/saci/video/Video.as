@@ -284,9 +284,9 @@
 		public function get playCount():int { return _playCount; }
 		public function get completeCount():int { return _completeCount; }
 		public function get isPlaying():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isPlaying : false; }
-		public function get isStoped():Boolean { return redneckVideoPlayer.isStoped; }
-		public function get isPaused():Boolean { return redneckVideoPlayer.isPaused; }
-		public function get isLoaded():Boolean { return redneckVideoPlayer.isLoaded; }
+		public function get isStoped():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isStoped : false; }
+		public function get isPaused():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isPaused : false; }
+		public function get isLoaded():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isLoaded : false; }
 		public function get isMute():Boolean { return _isMute; }		
 		public function get flv():String { return _flv; }
 		public function get stream():NetStream{ return redneckVideoPlayer.stream; }
