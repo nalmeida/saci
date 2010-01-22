@@ -1,0 +1,57 @@
+<xsl:element name='project'>
+
+	<!-- 
+	<config>
+		<isMock>true</isMock>
+		<absolutePath>http://www.ialmeida.com/redneck/</absolutePath>
+	</config>
+	-->
+	<xsl:element name='config'>
+		<xsl:element name='propertyName'>propertyValue</xsl:element>
+	</xsl:element>
+
+	<!--
+	<domains>
+		<item secure="true">http://localhost/</item>
+	</domains>
+	-->
+
+	<xsl:element name='domains'>
+		<xsl:element name='item'><xsl:attribute name='secure'>Boolean (optional)</xsl:attribute>url to load the crossdomain</xsl:element>
+	</xsl:element>
+
+	<!-- 
+	<languages default="eng-us">
+		<item locale="pt-br" src="copy-br" />
+		<item locale="eng-us" src="copy-us" />
+	</languages>
+	 -->
+	<xsl:element name='languages'><xsl:attribute name='default'>default locale name</xsl:attribute>
+		<xsl:element name='item'><xsl:attribute name='src'>file it at dependencies list</xsl:attribute><xsl:attribute name='locale'>locale name</xsl:attribute></xsl:element>
+	</xsl:element>
+
+	<!--
+	 <relativePath>
+		<item affects="basePath" path="http://www.ialmeida.com/">../data/mock</item>
+	</relativePath>
+	-->
+	<xsl:element name='relativePath'>
+		<xsl:element name='item'><xsl:attribute name='affects'>property name</xsl:attribute><xsl:attribute name='path'>url condicional</xsl:attribute>relative path to apply</xsl:element>
+	</xsl:element>
+
+	<xsl:element name='dependencies'>
+		<xsl:element name='file'>               
+			<xsl:element name='url'>obligatory</xsl:element>
+			<xsl:element name='pausedAtStart'/>
+			<xsl:element name='checkPolicyFile'/>
+			<xsl:element name='maxTries'/>
+			<xsl:element name='priority'/>
+			<xsl:element name='weight'/>
+			<xsl:element name='id'/>
+		</xsl:element>
+	</xsl:element>
+	
+	<!-- @see session_xml_schema.xml -->
+	<xsl:element name='sessions'/>
+
+</xsl:element>
