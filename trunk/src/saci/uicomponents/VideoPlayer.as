@@ -16,38 +16,41 @@
 	import saci.util.DisplayUtil;
 	import saci.util.Logger;
 	import saci.video.Video;
+	import flash.display.DisplayObject;
+	import flash.geom.Rectangle;
+	import flash.display.StageDisplayState;
+	import flash.geom.Point;
+	import flash.events.FullScreenEvent;
+	import flash.utils.Timer;
 	
 	/**
 	 * @author Nicholas Almeida
 	 */
 	
 	//TODO: Fazer o player ficar desabilitado antes de dar um load, loadPlaylist ou change
-	//TODO: Separar as classes de slidre de "volume" e slider de "track"
-	//TODO: fullscreen
+	//TODO: Separar as classes de slider de "volume" e slider de "track"
+	
+	
 	
 	public class VideoPlayer extends SaciSprite {
 		
-		protected var _width:Number = 320;
-		protected var _height:Number = 272;
-		protected var _autoHideBar:Boolean = false;
-		protected var _image:String;
+		protected var _size:Rectangle;
+		protected var _fullScreenSize:Rectangle;
+		protected var _fullScreenRotation:Number;
 		protected var _flv:String;
-		protected var _autoStart:Boolean;
-		protected var _stretching:Boolean = false;
-		protected var _fullScreenEnabled:Boolean = false;
+		protected var _autoHideBar:Boolean;
+		protected var _fullScreenEnabled:Boolean;
 		protected var _timerEnabled:Boolean = true;
-		protected var _fullScreenMode:String = "normal"; // normal or fullscreen
+		protected var _fullScreenMode:String = StageDisplayState.NORMAL; // normal or fullscreen
 		protected var _timeout:int = 5000; // time in miliseconds
+		protected var _smoothing:Boolean; // time in miliseconds
 		
 		protected var _hasAlreadyStartedLoading:Boolean = false;
-		protected var _hasLayout:Boolean = false;
 		protected var _controlInterval:uint;
 		protected var _autoStarted:Boolean = false;
-		protected var _volume:Number = 1;
+		protected var _volume:Number = .7;
 		protected var _isMute:Boolean;
 		protected var _oldVolume:Number = 1;
-		protected var _proportion:String = "smaller";
-		protected var _bufferTime:Number;
 		
 		/**
 		 * Elements
@@ -55,7 +58,7 @@
 		protected var _skin:Sprite;
 		protected var _video:Video;
 		
-		protected var _screen:*;
+		protected var _screen:VideoPlayerScreen;
 		protected var _controlBar:VideoPlayerControlBar;
 		protected var _id:String;
 		
@@ -64,66 +67,80 @@
 		 */
 		public static const FIRST_TIME_COMPLETE:String = Video.FIRST_TIME_COMPLETE;
 		public static const FIRST_TIME_PLAY:String = Video.FIRST_TIME_PLAY;
+
+		/**
+		 * options
+		 */
+		public static const AUTO_SIZE_NONE:String = Video.AUTO_SIZE_NONE;
+		public static const AUTO_SIZE_BIGGER:String = Video.AUTO_SIZE_BIGGER;
+		public static const AUTO_SIZE_SMALLER:String = Video.AUTO_SIZE_SMALLER;
+		public static const AUTO_SIZE_ORIGINAL:String = Video.AUTO_SIZE_ORIGINAL;
+		public static const FULL_SCREEN_NORMAL:String = StageDisplayState.NORMAL;
+		public static const FULL_SCREEN_FULL:String = StageDisplayState.FULL_SCREEN;
 		
-		public function VideoPlayer() {
-			Logger.init(Logger.logLevel);
+		public function VideoPlayer(p_skin:Sprite) {
+			_size = new Rectangle(0, 0, 320, 272);
+			_fullScreenSize = new Rectangle(0, 0, 1024, 768);
+			_skin = p_skin;
+			_screen = new VideoPlayerScreen(_skin);
+			_screen.hideBufferIcon();
+			_controlBar = new VideoPlayerControlBar(this, _skin);
+			_video = new Video();
+			_screen.videoHolder.addChild(_video);
+			_fullScreenMode = FULL_SCREEN_NORMAL;
+			fullScreenEnabled = false;
 		}
 		
 		/**
 		 * PUBLIC
 		 */
-		public function refresh():void {
-			if (_hasLayout) {
-				
-				_screen.refresh();
-				
-				if (autoHideBar) {
-					controlBar.y = screen.base.height - controlBar.base.height;
-					controlBar.visible = false;
-					_listenerManager.addEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
-					_listenerManager.addEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
-					_listenerManager.addEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
-				} else {
-					controlBar.y = screen.base.height;
-				}
-				
-				controlBar.pauseButton.visible = false;
-				controlBar.playButton.visible = true;
-				
-				_resizeVideo();
-				_controlBar.refresh();
+		public function init(p_flv:String):void {
+			_flv = p_flv;
+			_video.init();
+			
+			if(_smoothing){
+				_video.smoothing = _smoothing;
 			}
+			
+			addChild(_screen);
+			addChild(_controlBar);
+			
+			_addListeners();
+			_controlAll();
+			refresh();
 		}
 		
-		public function change(flvFile:String):void {
-			//var oldStatus:String;
-			if (video != null) {
-				if (video.ready) {
-					//oldStatus = video.status;
-					rewind();
-				}
-				video.dispose();
-				
-				screen.showBufferIcon();
+		public function refresh():void {
+			if (_autoHideBar) {
+				_screen.width = _size.width;
+				_screen.height = _size.height;
+				_controlBar.y = _screen.base.height - _controlBar.base.height;
+				_controlBar.visible = false;
+			} else {
+				_screen.width = _size.width;
+				_screen.height = _size.height - _controlBar.base.height;
+				_controlBar.y = _screen.base.height;
 			}
-			if (_controlInterval <=0) {
+			_video.resize(_screen.base.width, _screen.base.height);
+			_video.x = (_screen.base.width - _video.size.width) * .5;
+			_video.y = (_screen.base.height - _video.size.height) * .5;
+			_controlBar.refresh();
+		}
+		
+		public function load(p_flv:String = null):void {
+			if (_video.ready) {
+				rewind();
+			}
+			if (_controlInterval <= 0) {
 				_controlInterval = setInterval(_controlAll, 100);
 			}
-			//if (oldStatus == "play") { 
-				//autoStart = true;
-			//} else {
-				//autoStart = false;
-			//}
 			_hasAlreadyStartedLoading = true;
-			_autoStarted = false;
-			_id = video.id;
-			_flv = flvFile;
-			_video.load(flv);
-
+			_id = _video.id;
+			_flv = p_flv != null ? p_flv : _flv;
+			_video.load(_flv);
 		}
-		
-		public function load(flvFile:String):void {
-			change(flvFile);
+		public function startVideo():void{
+			_startLoading();
 		}
 		
 		public function dispose():void {
@@ -135,152 +152,93 @@
 		
 		public function rewind(e:Event = null):void {
 			stop();
-			video.rewind();
+			_video.rewind();
+			_screen.showBigPlayIcon();
+			_video.showPreview();
 			_controlBar.percentPlayed = 
 			_controlBar.time = 0;
-			
 			_controlBar.sliderButton.x = _controlBar.timeTrack.x;
 		}
 		
 		public function stop(e:Event = null):void {
-			video.stop();
+			_video.stop();
 		}
 		
 		public function playPause(e:Event = null):void {
-			video.playPause();
+			_video.playPause();
 		}
 		
 		public function pause(e:Event = null):void {
-			video.pause();
+			_video.pause();
 		}
 		
 		public function play(e:Event = null):void {
-			video.play();
+			_video.play();
 		}
 		
-		public function seek(time:Number, playAfter:Boolean = false):void {
-			video.seek(time, playAfter);
+		public function seek(p_time:Number, p_playAfter:Boolean = false):void {
+			_video.seek(p_time, p_playAfter);
 		}
 		
 		public function mute():void {
 			_oldVolume = volume;
-			video.volume = 0;
-			controlBar.seekVolume(0);
+			_video.volume = 0;
+			_controlBar.seekVolume(0);
 			_isMute = true;
 		}
 		
 		public function unMute():void {
-			video.volume = _oldVolume;
-			controlBar.seekVolume(_oldVolume);
+			_video.volume = _oldVolume;
+			_controlBar.seekVolume(_oldVolume);
 			_isMute = false;
+		}
+		public function setSize(p_width:Number, p_height:Number):void{
+			_size.width = p_width;
+			_size.height = p_height;
+			refresh();
 		}
 		
 		/**
 		 * PRIVATE
 		 */
-		
-		protected function _createLayoutElements():void {
-			
-			if (!_hasLayout) {
-				
-				_screen = new VideoPlayerScreen(this, _skin);
-				_controlBar = new VideoPlayerControlBar(this, _skin);
-				_video = new Video();
-				_video.autoStart = autoStart;
-				_video.bufferTime = bufferTime;
-				
-				screen.videoHolder.addChild(_video);
-				
-				/* BAR */
-				if (_fullScreenEnabled) {
-					_controlBar.enableFullScreen();
-				} else {
-					_controlBar.disableFullScreen();
-				}
-				if (_timerEnabled) {
-					_controlBar.enableTimer();
-				} else {
-					_controlBar.disableTimer();
-				}
-				
-				addChild(_screen);
-				addChild(_controlBar);
-				
-				if (autoStart) {
-					screen.hideBigPlayIcon();
-				}
-				
-				_addListeners();
-				_removeListSprites();
-				
-				_hasLayout = true;
-				
-				refresh();
-			}
-		}
-		
-		protected function _resizeVideo():void {
-			
-			if (stretching) {
-				_video.width = _width;
-				_video.height = _height;
-			} else {
-				
-				DisplayUtil.scaleProportionally(_video, screen.base.width, screen.base.height, proportion);
-				
-				_video.x = (screen.base.width * .5) - (video.width * .5);
-				_video.y = (screen.base.height * .5) - (video.height * .5);
-			}
-		}
-		
 		protected function _controlAll():void {
-			//video.mute();
-			
-			if (video.duration > 0) {
-				clearTimeout(timeout);
+
+			if (_video.duration > 0) {
+				clearTimeout(_timeout);
 			}
 			
-			//trace("[VideoPlayer._controlAll] video.status: " + video.status);
-			
-			switch(video.status) {
+			switch(_video.status) {
 				case "stop" :
-				
-					if (autoStart && (_video.bufferLength  >= _video.bufferTime) && !_autoStarted) {
-						_autoStarted = true;
-						setTimeout(function():void {
-							_startLoading();
-						}, 1000);
-					}
-				
-					controlBar.pauseButton.visible = false;
-					controlBar.playButton.visible = true;
+					_controlBar.pauseButton.visible = false;
+					_controlBar.playButton.visible = true;
 					break;
 				case "pause" :
-					controlBar.pauseButton.visible = false;
-					controlBar.playButton.visible = true;
+					_controlBar.pauseButton.visible = false;
+					_controlBar.playButton.visible = true;
 					break;
 				case "play" :
-					controlBar.pauseButton.visible = true;
-					controlBar.playButton.visible = false;
+					_controlBar.pauseButton.visible = true;
+					_controlBar.playButton.visible = false;
+					_screen.hideBigPlayIcon();
+					_video.hidePreview();
 					break;
 			}
 			
 			// show timer
-			if (timerEnabled && video.isPlaying) {
-				controlBar.time = video.time;
+			if (_timerEnabled && _video.isPlaying) {
+				_controlBar.time = _video.time;
 			}
 			
 			// moves the slider bar
-			if (video.isPlaying) {
-				controlBar.percentPlayed = video.time / video.duration;
+			if (_video.isPlaying) {
+				_controlBar.percentPlayed = _video.time / _video.duration;
 			}
 			
 			// scales the loader bar
-			if (!video.isLoaded) {
-				controlBar.percentLoaded = video.percentLoaded;
+			if (!_video.isLoaded) {
+				_controlBar.percentLoaded = _video.percentLoaded;
 			} else {
-				screen.hideBufferIcon();
-				controlBar.percentLoaded = 1;
+				_controlBar.percentLoaded = 1;
 			}
 			
 			// volume
@@ -292,34 +250,36 @@
 		protected function _addListeners():void {
 			mouseChildren = false;
 			buttonMode = true;
-			_listenerManager.addEventListener(this, Event.RESIZE, refresh);
 			_listenerManager.addEventListener(this, MouseEvent.CLICK, _startLoading);
 			
-			_listenerManager.addEventListener(video, VideoEvent.COMPLETE, _onComplete);
-			_listenerManager.addEventListener(video, VideoEvent.LOAD_COMPLETE, _onLoadComplete);
-			_listenerManager.addEventListener(video, VideoEvent.BUFFER_FULL, _onBufferFull);
-			_listenerManager.addEventListener(video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
-			_listenerManager.addEventListener(video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
-			_listenerManager.addEventListener(video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
-			_listenerManager.addEventListener(video, Video.FIRST_TIME_PLAY, _forwardEvent);
+			_listenerManager.addEventListener(_video, VideoEvent.COMPLETE, _onComplete);
+			_listenerManager.addEventListener(_video.redneckVideoPlayer, VideoEvent.METADATA, _onMetaData);
+			_listenerManager.addEventListener(_video, VideoEvent.BUFFER_FULL, _onBufferFull);
+			_listenerManager.addEventListener(_video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
+			_listenerManager.addEventListener(_video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
+			_listenerManager.addEventListener(_video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
+			_listenerManager.addEventListener(_video, Video.FIRST_TIME_PLAY, _forwardEvent);
 			
 			_listenerManager.addEventListener(_controlBar, VideoPlayerControlBar.VOLUME_CHANGED, _onVolumeChanged);
 		}
 		
+		protected function _onMetaData(e:VideoEvent):void{
+			_listenerManager.removeEventListener(_video.redneckVideoPlayer, VideoEvent.METADATA, _onMetaData);
+			refresh();
+		}
 		protected function _onComplete(e:VideoEvent):void{
 			_forwardEvent(e);
+			rewind();
 		}
 		
 		protected function _onVolumeChanged(e:Event):void {
-			video.volume = _controlBar.volume;
+			_video.volume = _controlBar.volume;
 		}
 		
-		protected function _onLoadComplete(e:VideoEvent):void {
-			if (autoStart && !_autoStarted) {
-				_autoStarted = true;
-				_startLoading();
-				_onBufferFull(e);
-			}
+		protected function _onFullScreen(e:FullScreenEvent):void {
+			_controlBar.isFullScreen = e.fullScreen;
+			if(!e.fullScreen)
+				fullScreenMode = FULL_SCREEN_NORMAL;
 		}
 		
 		protected function _removeListeners():void {
@@ -332,92 +292,92 @@
 		}
 		
 		protected function _onBufferEmpty(e:VideoEvent):void {
-			if(!video.redneckVideoPlayer.isLoaded) {
-				screen.showBufferIcon();
-				screen.disable();
+			if(!_video.redneckVideoPlayer.isLoaded) {
+				_screen.showBufferIcon();
+				_screen.disable();
 			}
 		}
 		
 		protected function _onBufferFull(e:VideoEvent):void {
-			screen.hideBufferIcon();
-			screen.enable();
-			if (video.isPlaying && (_video.isPaused || _video.isStoped)) play();
+			_screen.hideBufferIcon();
+			_screen.enable();
+			if (_video.isPlaying && (_video.isPaused || _video.isStoped)) play();
 		}
 		
 		protected function _onStreamNotFound(e:VideoEvent = null):void {
-			if(!video.isLoaded) {
+			if(!_video.isLoaded) {
 				Logger.logError("[VideoPlayer._onStreamNotFound] video: \"" + flv +  "\" not found");
 				dispatchEvent(e);
 				disable();
 				_listenerManager.removeAllEventListeners(video);
-				controlBar.pauseButton.visible = true;
-				controlBar.playButton.visible = false;
+				_controlBar.pauseButton.visible = true;
+				_controlBar.playButton.visible = false;
 			}
 		}
 		
 		protected function _startLoading(e:MouseEvent = null):void {
-			refresh();
-			if (_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)) {
-				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
+			/*refresh();*/
+			_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
+			if (!_listenerManager.hasEventListener(screen.base, MouseEvent.CLICK, playPause)) {
+				_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
 			}
-			screen.disable();
-			screen.hideBigPlayIcon();
-			screen.showBufferIcon();
+			_screen.disable();
+			_screen.showBufferIcon();
 			
 			mouseChildren = true;
 			buttonMode = false;
 			
-			screen.buttonMode = true;
-			_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
+			_screen.buttonMode = true;
 			
-			if (autoHideBar) _onRollOver();
+			if (_autoHideBar) _onRollOver();
 			
 			if (!_hasAlreadyStartedLoading) {
-				_autoStart = true;
-				load(flv);
+				load(_flv);
 				_startLoading();
 			} else {
-				video.bufferTime = bufferTime;
+				_video.bufferTime = bufferTime;
 				setTimeout(play, 200);
-				timeout = setTimeout(_onStreamNotFound, timeout);
+				_timeout = setTimeout(_onStreamNotFound, _timeout);
 			}
-			
-			
+			_onRollOver();
 		}
 		
 		protected function _onRollOver(e:MouseEvent = null):void {
-			if(!screen.bigPlayIcon.visible && !controlBar.visible && !screen.blocked) {
-				controlBar.visible = true;
-				if(controlBar.alpha == 1) controlBar.alpha = 0
-				Tweener.addTween(controlBar, { alpha:1, time: .3, transition: "linear"} );
+			if(!_screen.bigPlayIcon.visible && !_controlBar.visible) {
+				_controlBar.visible = true;
+				if(_controlBar.alpha > 0) {
+					_controlBar.alpha = 0;
+				}
+				Tweener.addTween(_controlBar, {
+					alpha:1,
+					time: .3,
+					transition: "linear"
+				});
 			}
 		}
-		
 		protected function _onRollOut(e:MouseEvent = null):void {
-			if (controlBar.visible && !screen.blocked) {
-				Tweener.addTween(controlBar, { alpha:0, time: .2, delay:.5 , transition: "linear", onComplete: function():void {controlBar.visible = false;}} );
+			if (_controlBar.visible && !_screen.blocked) {
+				Tweener.addTween(_controlBar, { 
+					alpha:0,
+					time: .2,
+					delay:.5,
+					transition: "linear",
+					onComplete: _onHideControlBar
+				});
 			}
 		}
+		protected function _onHideControlBar():void {
+			_controlBar.visible = false;
+		}
 		
-		protected function _removeListSprites():void {
+		protected function _onImagePreviewLoad(e:Event):void {
+			_listenerManager.removeEventListener(_video, Video.IMAGE_PREVIEW_COMPLETE, _onImagePreviewLoad);
+			refresh();
 		}
 		
 		/**
 		 * OVERRIDE
 		 */
-		
-		override public function get width():Number { return _width; }
-		override public function set width(value:Number):void {
-			_width = value;
-			refresh();
-		}
-		
-		override public function get height():Number { return _height; }
-		override public function set height(value:Number):void {
-			_height = value;
-			refresh();
-		}
-		
 		override public function destroy():Boolean {
 			dispose();
 			_removeListeners();
@@ -428,43 +388,60 @@
 		 * SETTERS AND GETTERS
 		 */
 		public function get skin():Sprite { return _skin; }
-		public function set skin(value:Sprite):void {
-			_skin = value;
-			_createLayoutElements();
+		public function get video():Video { return _video; }
+		public function get screen():* { return _screen; }
+		public function get controlBar():VideoPlayerControlBar { return _controlBar; }
+		public function get time():Number { 
+			return _video != null ? _video.time : 0; 
 		}
 		
 		public function get autoHideBar():Boolean { return _autoHideBar; }
 		public function set autoHideBar(value:Boolean):void {
 			_autoHideBar = value;
-		}
-		
-		public function get flv():String { return _flv; }
-		public function set flv(value:String):void { _flv = value; }
-		
-		public function get stretching():Boolean { return _stretching; }
-		public function set stretching(value:Boolean):void {
-			_stretching = value;
-		}
-		
-		public function get autoStart():Boolean { return _autoStart; }
-		public function set autoStart(value:Boolean):void {
-			_autoStart = value;
-			if (_video != null) {
-				_video.autoStart = _autoStart;
+			if(_autoHideBar){
+				_listenerManager.addEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
+				_listenerManager.addEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
+				_listenerManager.addEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
+				_onRollOut(null);
+			}else{
+				_listenerManager.removeEventListener(this, MouseEvent.ROLL_OVER, _onRollOver);
+				_listenerManager.removeEventListener(this, MouseEvent.MOUSE_OVER, _onRollOver);
+				_listenerManager.removeEventListener(this, MouseEvent.ROLL_OUT, _onRollOut);
 			}
 		}
 		
-		public function get image():String { return _image; }
-		public function set image(value:String):void {
-			_image = value;
-			if (_video != null) {
-				video.image = _image;
+		public function get flv():String { return _video.flv; }
+		public function set flv(value:String):void { 
+			if(value != null){
+				_video.load(flv);
 			}
 		}
 		
-		public function get video():Video { return _video; }
-		public function get screen():* { return _screen; }
-		public function get controlBar():VideoPlayerControlBar { return _controlBar; }
+		public function get size():Rectangle { return _size; }
+		public function set size(value:Rectangle):void {
+			_size = value;
+			refresh();
+		}
+		
+		public function get autoSize():String { return _video.autoSize; }
+		public function set autoSize(value:String):void {
+			_video.autoSize = value;
+		}
+		
+		public function get previewURL():String { return _video.previewURL; }
+		public function set previewURL(value:String):void {
+			if (value != null) {
+				_video.previewURL = value;
+				_listenerManager.addEventListener(_video, Video.IMAGE_PREVIEW_COMPLETE, _onImagePreviewLoad);
+			}
+		}
+		
+		public function get preview():DisplayObject { return _video.preview; }
+		public function set preview(value:DisplayObject):void {
+			if (value != null) {
+				_video.preview = value;
+			}
+		}
 		
 		public function get fullScreenEnabled():Boolean { return _fullScreenEnabled; }
 		public function set fullScreenEnabled(value:Boolean):void {
@@ -476,38 +453,51 @@
 			}
 		}
 		
-		public function get time():Number { 
-			if (video != null) {
-				return video.time; 
-			} else {
-				return 0;
-			}
-		}
-		
 		public function get volume():Number { 
-			if (video != null) {
-				return video.volume; 
-			} else {
-				return _volume;
-			}
-			
+			return _video != null ? _video.volume : _volume; 
 		}
 		public function set volume(value:Number):void {
 			_volume = value;
-			if (video != null) {
+			if (_video != null) {
 				if (value > 1) {
 					throw new Error("[ERROR] VideoPlayer volume MUST be > 0 and < 1");
 				}
-				video.volume = value;
-				controlBar.seekVolume(video.volume);
+				_video.volume = value;
+				_controlBar.seekVolume(_video.volume);
 			}
 		}
 		
-		public function updateOldVolume(value:Number):void {
-			_oldVolume = value;
-		}
-		
 		public function get fullScreenMode():String { return _fullScreenMode; }
+		public function set fullScreenMode(value:String):void {
+			_fullScreenMode = value;
+			if(stage != null){
+				
+				switch(_fullScreenMode){
+					case FULL_SCREEN_NORMAL:
+						if(_listenerManager.hasEventListener(stage, FullScreenEvent.FULL_SCREEN, _onFullScreen)){
+							_listenerManager.removeEventListener(stage, FullScreenEvent.FULL_SCREEN, _onFullScreen);
+						}
+						rotation = _fullScreenRotation;
+						setSize(_fullScreenSize.width, _fullScreenSize.height);
+						break;
+					case FULL_SCREEN_FULL:
+						if(!_listenerManager.hasEventListener(stage, FullScreenEvent.FULL_SCREEN, _onFullScreen)){
+							_listenerManager.addEventListener(stage, FullScreenEvent.FULL_SCREEN, _onFullScreen);
+						}
+						var globalPos:Point = localToGlobal(new Point(0, 0));
+						var newHeight:Number = stage.fullScreenHeight * width / stage.fullScreenWidth;
+						_fullScreenSize.width = _size.width;
+						_fullScreenSize.height = _size.height;
+						_fullScreenRotation = rotation;
+						rotation = 0;
+						stage.fullScreenSourceRect = new Rectangle(globalPos.x, globalPos.y, stage.fullScreenWidth, stage.fullScreenHeight);
+						setSize(stage.fullScreenWidth, stage.fullScreenHeight);
+						break;
+				}
+				
+				stage.displayState = _fullScreenMode;
+			}
+		}
 		
 		public function get timerEnabled():Boolean { return _timerEnabled; }
 		public function set timerEnabled(value:Boolean):void {
@@ -519,9 +509,21 @@
 			}
 		}
 		
-		public function get bufferTime():Number { return _bufferTime; }
+		public function get bufferTime():Number { return _video.bufferTime; }
 		public function set bufferTime(value:Number):void {
-			_bufferTime = value;
+			_video.bufferTime = value;
+		}
+		public function get smoothing():Boolean {
+			if(_video != null){
+				return _video.smoothing;
+			}
+			return _smoothing;
+		}
+		public function set smoothing(value:Boolean):void {
+			_smoothing = value;
+			if(_video != null){
+				_video.smoothing = value;
+			}
 		}
 		
 		public function get timeout():int { return _timeout; }
@@ -531,13 +533,6 @@
 		
 		public function get isMute():Boolean { return _isMute; }
 		public function get id():String { return _id; }
-		public function get hasLayout():Boolean { return _hasLayout; }
-		
-		public function get proportion():String { return _proportion; }
-		public function set proportion(value:String):void {
-			_proportion = value;
-		}
 		
 	}
-	
 }
