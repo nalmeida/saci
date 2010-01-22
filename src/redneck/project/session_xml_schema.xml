@@ -1,0 +1,33 @@
+<xsl:element name='sessions'><!-- not obligatory --><xsl:attribute name='deeplink'>Boolean</xsl:attribute>
+	<xsl:element name='session'>
+		<!--obligatory -->
+		<xsl:element name='name'>obligatory</xsl:element>
+		<xsl:element name='view'>obligatory</xsl:element>
+		<!-- not obligatory -->
+		<xsl:element name='keepFiles'/>
+		<xsl:element name='title'/>
+		<xsl:element name='allowHistory'/>
+		<xsl:element name='deeplink'/>
+		<!-- not obligatory -->
+		<xsl:element name='services'>
+			<xsl:element name='service'>               
+				<xsl:element name='url'>obligatory</xsl:element>
+				<xsl:element name='name'/>
+				<!-- not obligatory -->
+				<xsl:element name='method'/>
+				<xsl:element name='params'/>
+			</xsl:element>
+		</xsl:element>
+		<xsl:element name='dependencies'>
+			<xsl:element name='file'>               
+				<xsl:element name='url'>obligatory</xsl:element>
+				<xsl:element name='pausedAtStart'/>
+				<xsl:element name='checkPolicyFile'/>
+				<xsl:element name='maxTries'/>
+				<xsl:element name='priority'/>
+				<xsl:element name='weight'/>
+				<xsl:element name='id'/>
+			</xsl:element>
+		</xsl:element>
+	</xsl:element>
+</xsl:element>
