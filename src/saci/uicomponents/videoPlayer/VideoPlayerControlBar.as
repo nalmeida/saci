@@ -275,13 +275,13 @@
 		}
 
 		private function _openFullScreen(e:MouseEvent):void {
-			_fullScreenButton.visible = false;
-			_normalScreenButton.visible = true;
+			isFullScreen = true;
+			_videoPlayer.fullScreenMode = VideoPlayer.FULL_SCREEN_FULL;
 		}
 		
 		private function _openNormalScreen(e:MouseEvent):void{
-			_fullScreenButton.visible = true;
-			_normalScreenButton.visible = false;
+			isFullScreen = false;
+			_videoPlayer.fullScreenMode = VideoPlayer.FULL_SCREEN_NORMAL;
 		}
 		
 		private function _openVolumeControl(e:MouseEvent = null):void {
@@ -292,6 +292,11 @@
 			_volumeBase.visible = false;
 		}
 		
+		public function get isFullScreen():Boolean { return _fullScreenButton.visible; }
+		public function set isFullScreen(value:Boolean):void {
+			_fullScreenButton.visible = !value;
+			_normalScreenButton.visible = value;
+		}
 		public function get base():Sprite { return _base; }
 		public function get playButton():Sprite { return _playButton; }
 		public function get pauseButton():Sprite { return _pauseButton; }

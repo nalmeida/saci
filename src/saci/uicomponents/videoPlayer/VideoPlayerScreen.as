@@ -11,7 +11,6 @@
 	public class VideoPlayerScreen extends SaciSprite{
 		
 		protected var _skin:Sprite;
-		protected var _videoPlayer:*;
 		protected var _blocked:Boolean = false;
 		
 		protected var _screen:Sprite;
@@ -21,9 +20,8 @@
 			protected var _bigPlayIcon:Sprite;
 			protected var _bufferIcon:MovieClip;
 		
-		public function VideoPlayerScreen($videoPlayer:*, $skin:Sprite) {
+		public function VideoPlayerScreen($skin:Sprite) {
 			_skin = $skin;
-			_videoPlayer = $videoPlayer;
 			
 			_screen = _skin.getChildByName("screen") as Sprite;
 				_base = _screen.getChildByName("base") as Sprite;
@@ -32,9 +30,7 @@
 				_bufferIcon = _screen.getChildByName("bufferIcon") as MovieClip;
 				_bigPlayIcon = _screen.getChildByName("bigPlayIcon") as Sprite;
 			
-			if (_videoPlayer.autoStart) hideBigPlayIcon();
-			else hideBufferIcon();
-			
+			hideBufferIcon();
 
 			_bigPlayIcon.mouseChildren = 
 			_bigPlayIcon.mouseEnabled = 
@@ -76,20 +72,13 @@
 			bigPlayIcon.visible = false;
 		}
 		
-		public function refresh():void {
-			
-			if(_videoPlayer.hasLayout) {
-				base.width = _videoPlayer.width;
-				
-				if (_videoPlayer.autoHideBar) {
-					base.height = _videoPlayer.height
-				} else {
-					base.height = _videoPlayer.height - _videoPlayer.controlBar.base.height;
-				}
-				bigPlayIcon.x = bufferIcon.x = base.width * .5;
-				bigPlayIcon.y = bufferIcon.y = base.height * .5;
-				
-			}
+		override public function set width(value:Number):void{
+			base.width = value;
+			bigPlayIcon.x = bufferIcon.x = base.width * .5;
+		}
+		override public function set height(value:Number):void{
+			base.height = value;
+			bigPlayIcon.y = bufferIcon.y = base.height * .5;
 		}
 		
 		public function get base():Sprite { return _base; }

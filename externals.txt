@@ -1,6 +1,0 @@
-br http://bulk-loader.googlecode.com/svn/trunk/src/br
-caurina http://tweener.googlecode.com/svn/trunk/as3/caurina
-br/com/stimuli/string http://printf-as3.googlecode.com/svn/trunk/src/br/com/stimuli/string/
-net/hires/debug/ http://mrdoob.googlecode.com/svn/trunk/libs/net/hires/debug/
-com https://swfaddress.svn.sourceforge.net/svnroot/swfaddress/trunk/swfaddress/dist/as/3/com
-redneck http://www.ialmeida.com/projects/redneck/trunk/as3/src/redneck
