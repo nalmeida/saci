@@ -4,27 +4,71 @@
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
 	import flash.net.NetStream;
 	import flash.utils.setTimeout;
-	import saci.events.ListenerManager;
 	import saci.loader.SimpleLoader;
 	import saci.ui.SaciSprite;
 	import redneck.video.VideoPlayer;
 	import redneck.events.VideoEvent;
 	import saci.util.Logger;
+	import flash.events.TimerEvent;
+	import flash.utils.Timer;
+	import saci.util.DisplayUtil;
+	import flash.geom.Rectangle;
+	import flash.display.DisplayObject;
 	
 	/**
-	 * @author Nicholas Almeida
+	 *	@author Nicholas Almeida
+	 *	@example
+	 *		<code>
+	 *			var video:Video = nFew Video();
+	 *			video.autoStart = true;
+	 *			video.videoArea.width = 300;
+	 *			video.videoArea.height = 350;
+	 *			video.autoSize = Video.AUTO_SIZE_SMALLER;
+	 *			
+	 *			var preview = new Sprite();
+	 *			preview.graphics.beginFill(0xFF0000, .5);
+	 *			preview.graphics.drawRect(0, 0, 320, 180);
+	 *			preview.graphics.endFill();
+	 *			
+	 *			_video.preview = preview;
+	 *			addChild(_video);
+	 *			_video.load("http://interface.aceite.fbiz.com.br/testes/flv/video.flv?v=1");
+	 *		</code>
 	 */
 	public class Video extends SaciSprite {
 		
+		public static function getById(p_id:String):Video{
+			for (var i:int = 0; Boolean(_instances[i]); i++){
+				if(_instances[i].id === p_id){
+					return _instances[i];
+				}
+			}
+			return null;
+		}
+		
+		public static var instancesCreated:int = 0;
+		public static var _instances:Array = [];
+		
+		public static const FIRST_TIME_COMPLETE:String = "firstTimeComplete";
+		public static const FIRST_TIME_PLAY:String = "firstTimePlay";
+	
+		public static const IMAGE_PREVIEW_COMPLETE:String = "imagePreviewComplete";
+		public static const IMAGE_PREVIEW_ERROR:String = "imagePreviewError";
+		
+		public static const AUTO_SIZE_NONE:String = "none";
+		public static const AUTO_SIZE_BIGGER:String = "bigger";
+		public static const AUTO_SIZE_SMALLER:String = "smaller";
+		public static const AUTO_SIZE_ORIGINAL:String = "original";
+
 		private var _id:String;
-		private var _image:String;
+		private var _previewURL:String;
 		private var _flv:String;
-		private var _width:int = 320;
-		private var _height:int = 240;
-		private var _duration:int = 0;
+		private var _videoArea:Rectangle; // desired size (for proportional resize)
+		private var _size:Rectangle; // current size (based on video > preview > sprite)
+		private var _autoSize:String = AUTO_SIZE_SMALLER;
+		private var _autoSized:Boolean;
 		private var _autoStart:Boolean;
 		private var _volume:Number = 1;
 		private var _bufferTime:Number = 5;
@@ -37,24 +81,18 @@
 		
 		private var _redneckVideoPlayer:VideoPlayer;
 		private var _imgHolder:SaciSprite;
-		private var _bmpImage:Bitmap;
+		private var _preview:DisplayObject;
 		private var _simpleLoader:SimpleLoader;
-		
-		public static var instancesCreated:int = 0;
-		
-		public static const FIRST_TIME_COMPLETE:String = "firstTimeComplete";
-		public static const FIRST_TIME_PLAY:String = "firstTimePlay";
-	
-		public static const IMAGE_PREVIEW_COMPLETE:String = "imagePreviewComplete";
-		public static const IMAGE_PREVIEW_ERROR:String = "imagePreviewError";
 		
 		public function Video($id:String = null) {
 			super();
+			_instances[_instances.length] = this;
+			_videoArea = new Rectangle(0,0,320,240);
+			_size = new Rectangle();
 			if($id == null )
 				_id = "Video-" + (instancesCreated++);
 			else 
 				_id = $id;
-			Logger.init(Logger.LOG_VERBOSE);
 		}
 		
 		/**
@@ -68,16 +106,15 @@
 		}
 		
 		public function seek(time:Number, playAfter:Boolean = false):void {
-			redneckVideoPlayer.seek(time, playAfter);
+			_redneckVideoPlayer.seek(time, playAfter);
 		}
 		
 		public function stop():void {
-			if(redneckVideoPlayer != null) {
-				redneckVideoPlayer.stop();
+			if(_redneckVideoPlayer != null) {
+				_redneckVideoPlayer.stop();
 				dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
 			}
 		}
-		
 		public function playPause():void {
 			if (isPlaying) {
 				pause();
@@ -85,57 +122,90 @@
 				play();
 			}
 		}
-		
 		public function pause():void {
-			redneckVideoPlayer.pause();
+			_redneckVideoPlayer.pause();
 			dispatchEvent(new VideoEvent(VideoEvent.PAUSE_NOTIFY));
 		}
-		
 		public function play():void {
-			_hidePreviewImage();
+			hidePreview();
 			_redneckVideoPlayer.play();
 		}
-		
 		public function mute():void {
 			_redneckVideoPlayer.volume = 0;
 			_isMute = true;
 		}
-		
 		public function unMute():void {
 			_redneckVideoPlayer.volume = _volume;
 			_isMute = false;
 		}
-		
-		public function change(flvFile:String):void {
-			dispose();
-			_init();
-			_flv = flvFile;
-			_redneckVideoPlayer.load(flv);
+
+		public function hidePreview():void{
+			if(_preview != null && _preview.parent != null){
+				setTimeout(_onHidePreview, 150);
+			}
 		}
-		
+		public function showPreview():void{
+			if(_preview != null && _preview.parent == null){
+				addChild(_preview);
+			}
+		}
+
 		public function load(flvFile:String):void {
-			change(flvFile);
+			if(_flv != null && _flv != flvFile){
+				_disposeVideo();
+				init();
+			}
+			_flv = flvFile;
+			_redneckVideoPlayer.load(_flv);
 		}
 		
-		public function dispose():void {
+		public function resize(p_width:Number = NaN, p_height:Number = NaN):void {
+			if(!isNaN(p_width)){_videoArea.width = p_width;}
+			if(!isNaN(p_height)){_videoArea.height = p_height;}
+			switch(_autoSize){
+				case AUTO_SIZE_SMALLER:
+				case AUTO_SIZE_BIGGER:
+					if(_redneckVideoPlayer != null){
+						DisplayUtil.scaleProportionally(_redneckVideoPlayer, _videoArea.width, _videoArea.height, _autoSize);
+					}
+					if(_preview != null){
+						DisplayUtil.scaleProportionally(_preview, _videoArea.width, _videoArea.height, _autoSize);
+					}
+					break;
+				case AUTO_SIZE_NONE:
+					if(_redneckVideoPlayer != null){
+						_redneckVideoPlayer.width = _videoArea.width;
+						_redneckVideoPlayer.height = _videoArea.height;
+					}
+					if(_preview != null){
+						_preview.width = _videoArea.width;
+						_preview.height = _videoArea.height;
+					}
+					break;
+			}
+		}
+		
+		protected function _disposeVideo():void {
+			_autoSized = false;
 			if(_redneckVideoPlayer != null){
 				_listenerManager.removeAllEventListeners(_redneckVideoPlayer);
-				
 				_redneckVideoPlayer.dispose();
-				if (numChildren > 1) {
-					removeChild(_redneckVideoPlayer);
+				if (_redneckVideoPlayer.parent != null) {
+					_redneckVideoPlayer.parent.removeChild(_redneckVideoPlayer);
 				}
 				_redneckVideoPlayer = null;
 			}
+			_completeCount = _playCount = 0;
+		}
+		public function dispose():void {
+			_disposeVideo();
 			
-			if (_imgHolder != null) {
-				_imgHolder.removeAllEventListeners();
-				_imgHolder.destroy();
-				_imgHolder = null;
-			}
-			
-			if (_bmpImage != null) {
-				_bmpImage = null;
+			if (_preview != null) {
+				if(_preview is Bitmap){
+					var bitmapPreview:Bitmap = _preview as Bitmap;
+					bitmapPreview.bitmapData.dispose();
+				}
+				_preview = null;
 			}
 			
 			if (_simpleLoader != null) {
@@ -143,71 +213,83 @@
 				_simpleLoader.destroy();
 				_simpleLoader = null;
 			}
-			
-			_completeCount = _playCount = 0;
-			
 		}
 		
 		/**
 		 * PRIVATE
 		 */
-		private function _init():void {
-			_redneckVideoPlayer = new VideoPlayer(_width, _height, false);
+		public function init():void {
+			_redneckVideoPlayer = new VideoPlayer(_videoArea.width, _videoArea.height, _autoSize != AUTO_SIZE_NONE);
 			addChild(_redneckVideoPlayer);
 			
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.COMPLETE, _onComplete);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_START, _onPlay);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.METADATA, _onVideoMetadata);
-			
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_FULL, _onBufferFull);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_STREAMNOTFOUND, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.SEEK_INVALIDTIME, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.LOAD_COMPLETE, _forwardVideoEvent);
 			
-			_initImage();
-			
 			_ready = true;
 		}
 		
+		
+		// Preview Image Stuff
 		private function _initImage():void {
-			_imgHolder = new SaciSprite();
-			addChild(_imgHolder);
-			if(image != null && image != ""){
-				_simpleLoader = new SimpleLoader();
-				_listenerManager.addEventListener(_simpleLoader, Event.COMPLETE, _onLoadImageComplete);
-				_listenerManager.addEventListener(_simpleLoader, ErrorEvent.ERROR, _onLoadImageError);
-				_listenerManager.addEventListener(_simpleLoader, IOErrorEvent.IO_ERROR, _onLoadImageIOError);
-				_simpleLoader.load(image);
+			switch(true){
+				case (_previewURL != null && _previewURL != ""):
+					_simpleLoader = new SimpleLoader();
+					_listenerManager.addEventListener(_simpleLoader, Event.COMPLETE, _onLoadImageComplete);
+					_listenerManager.addEventListener(_simpleLoader, ErrorEvent.ERROR, _onLoadImageError);
+					_listenerManager.addEventListener(_simpleLoader, IOErrorEvent.IO_ERROR, _onLoadImageIOError);
+					_simpleLoader.load(_previewURL);
+					break;
+				case (_preview != null):
+					if(!isPlaying){
+						addChild(_preview);
+						resize();
+					}
+					break;
 			}
 		}
 		
 		private function _onLoadImageIOError(e:IOErrorEvent):void {
 			Logger.logError("[Video._onLoadImageIOError]: " + e);
 			dispatchEvent(new Event(IMAGE_PREVIEW_ERROR));
-			
 		}
-		
 		private function _onLoadImageError(e:ErrorEvent):void {
 			Logger.logError("[Video._onLoadImageError]: " + e);
 			dispatchEvent(new Event(IMAGE_PREVIEW_ERROR));
 		}
-		
 		private function _onLoadImageComplete(e:Event):void {
 			if(!isPlaying){
-				if(_simpleLoader.contentType == "image/jpeg") {
-					_bmpImage = _simpleLoader.content;
-					_bmpImage.smoothing = true;
+				switch(_simpleLoader.contentType){
+					case "image/jpeg":
+					case "image/png":
+					case "image/gif":
+						if(_preview != null && _preview.parent != null){
+							_preview.parent.removeChild(_preview);
+						}
+						_preview = _simpleLoader.content;
+						if(_preview is Bitmap){
+							var bitmapPreview:Bitmap = _preview as Bitmap;
+							bitmapPreview.smoothing = true;
+						}
+						break;
 				}
-				_imgHolder.addChild(_bmpImage);
-				_imgHolder.width = width;
-				_imgHolder.height = height;
-				dispatchEvent(new Event(IMAGE_PREVIEW_COMPLETE));
+				if(_preview != null){
+					addChild(_preview);
+					resize();
+					dispatchEvent(new Event(IMAGE_PREVIEW_COMPLETE));
+				}
 			}
 		}
 		
-		private function _hidePreviewImage():void{
-			if(_imgHolder.visible) setTimeout(_imgHolder.hide, 150);
+		private function _onHidePreview():void{
+			if(_preview.parent != null){
+				_preview.parent.removeChild(_preview);
+			}
 		}
 		
 		/**
@@ -222,23 +304,26 @@
 			_loopCount++;
 			_completeCount++;
 		}
-		
 		private function _onPlay(e:VideoEvent):void {
-			_hidePreviewImage();
 			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
 		}
-		
 		private function _onVideoMetadata(e:VideoEvent):void {
-			_redneckVideoPlayer.stream.bufferTime = bufferTime;
-			seek(0);
-			if (autoStart && (_redneckVideoPlayer.stream.bufferLength > bufferTime || _redneckVideoPlayer.isLoaded)) {
-				play();
+			if(_redneckVideoPlayer.stream.bufferTime != _bufferTime){
+				_redneckVideoPlayer.stream.bufferTime = _bufferTime;
 			}
-			_redneckVideoPlayer.volume = volume;
+			if(_redneckVideoPlayer.volume != volume){
+				_redneckVideoPlayer.volume = volume;
+			}
+			if(!_autoSized){
+				_autoSized = true
+				resize(_videoArea.width, _videoArea.height);
+			}
 		}
-		
 		private function _onBufferFull(e:VideoEvent):void {
 			_forwardVideoEvent(e);
+			if(_autoStart){
+				play();
+			}
 			if (_playCount == 0) {
 				dispatchEvent(new VideoEvent(FIRST_TIME_PLAY));
 				_playCount++;
@@ -259,18 +344,52 @@
 			return super.destroy();
 		}
 		
-		override public function get width():Number { return _width; }
-		override public function set width(value:Number):void {
-			_width = value;
-			if (_redneckVideoPlayer != null) _redneckVideoPlayer.width = value;
-			if (_imgHolder != null) _imgHolder.width = value;
+		public function get autoSize():String { return _autoSize; }
+		public function set autoSize(value:String):void {
+			switch(value){
+				case AUTO_SIZE_NONE:
+				case AUTO_SIZE_ORIGINAL:
+				case AUTO_SIZE_BIGGER:
+				case AUTO_SIZE_SMALLER:
+					_autoSize = value;
+					if (_redneckVideoPlayer != null)
+						_redneckVideoPlayer.autoSize = (_autoSize != AUTO_SIZE_NONE);
+				break;
+			}
 		}
-		
-		override public function get height():Number { return _height; }
-		override public function set height(value:Number):void {
-			_height = value;
-			if (_redneckVideoPlayer != null) _redneckVideoPlayer.height = value;
-			if (_imgHolder != null) _imgHolder.height = value;
+
+		/**
+		 * sets the desired video area. Useful for autosize
+		 *	
+		 */
+		public function set videoArea(value:Rectangle):void {
+			if(_redneckVideoPlayer != null) _redneckVideoPlayer.width = value.width;
+			if (_imgHolder != null) _imgHolder.width = value.width;
+			if (_redneckVideoPlayer != null) _redneckVideoPlayer.height = value.height;
+			if (_imgHolder != null) _imgHolder.height = value.height;
+		}
+		public function get videoArea():Rectangle {
+			return _videoArea;
+		}
+		/**
+		 * gets the size of the generated area. Verifies Video > Preview > Native Width and Height
+		 */
+		public function get size():Rectangle {
+			switch(true){
+				case (_autoSized && _redneckVideoPlayer != null):
+					_size.width = _redneckVideoPlayer.width;
+					_size.height = _redneckVideoPlayer.height;
+					break;
+				case (_preview != null):
+					_size.width = _preview.width;
+					_size.height = _preview.height;
+					break;
+				default:
+					_size.width = _videoArea.width;
+					_size.height = _videoArea.height;
+					break;
+			}
+			return _size;
 		}
 		
 		/**
@@ -297,6 +416,13 @@
 			_autoStart = value;
 		}
 		
+		public function get smoothing():Boolean{ return _redneckVideoPlayer != null ? _redneckVideoPlayer.smoothing : false; }
+		public function set smoothing(value:Boolean):void {
+			if(_redneckVideoPlayer != null){
+				_redneckVideoPlayer.smoothing = value;
+			}
+		}
+		
 		public function get volume():Number { return _volume; }
 		public function set volume(value:Number):void {
 			_volume = value;
@@ -305,10 +431,18 @@
 			}
 		}
 		
-		public function get image():String { return _image; }
-		public function set image(value:String):void {
-			_image = value;
-			if (_imgHolder == null) {
+		public function get preview():DisplayObject { return _preview; }
+		public function set preview(value:DisplayObject):void {
+			if(value != null){
+				_preview = value;
+				_previewURL = null;
+			}
+		}
+			
+		public function get previewURL():String { return _previewURL; }
+		public function set previewURL(value:String):void {
+			if (value != null) {
+				_previewURL = value;
 				_initImage();
 			}
 		}

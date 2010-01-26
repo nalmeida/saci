@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt" lang="pt">
+<head runat="server">
+	<title>Video Player Example</title>
+	<meta name="description" content="Video Player Example" />
+	<meta name="keywords" content="Video Player Example" />
+	
+	<meta name="copyright" content="F.biz" />
+	<meta name="author" content="F.biz - http://www.fbiz.com.br/" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="MSSmartTagsPreventParsing" content="TRUE" />
+	<meta name="robots" content="INDEX, FOLLOW" />
+
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="Fri, 13 Jul 2001 00:00:01 GMT" />
+
+	<link rel="shortcut icon" href="../img/favicon.ico" />
+	<style type="text/css">
+		body{
+			padding:0;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript" src="js/swfobject.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		// <![CDATA[
+		(function(scope){
+			
+			function play(){
+				alert("play");
+			};
+			function pause(){
+				alert("pause");
+			};
+			function togglePlayPause(){
+				alert("togglePlayPause");
+			};
+			function rewind(){
+				alert("rewind");
+			};
+			function changeVideo(){
+				alert("changeVideo");
+			};
+			
+			scope.videoPlayer = {
+				play: play,
+				pause: pause,
+				togglePlayPause: togglePlayPause,
+				rewind: rewind,
+				changeVideo: changeVideo
+			};
+		})(window);
+		window.onload = function(){
+			var elm = ["play", "pause", "togglePlayPause", "rewind", "changeVideo"];
+			
+			var currentElement;
+			for (var i=0; elm[i]; i++) {
+				currentElement = document.getElementById(elm[i]);
+				currentElement.href = "javascript:;";
+				currentElement.onclick = videoPlayer[elm[i]];
+			};
+			
+			
+			var btPause = document.getElementById("play");
+			btPause.href = "javascript:;";
+			btPause.onclick = videoPlayer.play;
+		}
+		// ]]>
+	</script>
+</head>
+<body>
+	<div id="flashVideoPlayer"></div>
+	<ul>
+		<li><a id="play" href="#play">videoPlayer.play()</a></li>
+		<li><a id="pause" href="#pause">videoPlayer.pause()</a></li>
+		<li><a id="togglePlayPause" href="#togglePlayPause">videoPlayer.togglePlayPause()</a></li>
+		<li><a id="rewind" href="#rewind">videoPlayer.rewind()</a></li>
+		<li><a id="changeVideo" href="#changeVideo">videoPlayer.changeVideo()</a></li>
+	</ul>
+	<script type="text/javascript" charset="utf-8">
+		// <![CDATA[
+		var flashvars = {
+			fullScreenEnabled: "true",
+			timerEnabled: "true",
+			bufferTime: 5,
+			smoothing: "true",
+			timeout: 5,
+			previewURL: "ext/flap1.png",
+			autoSize: "none", // none (esticado) || bigger (sangrado) || smaller (tarjas pretas) || original
+			skin: "ext/skin.swf",
+			flv: "ext/flap1.flv",
+		};
+		var params = {
+			menu: "false",
+			allowFullScreen: true,
+			allowscriptaccess: 'always'
+		};
+		
+		swfobject.embedSWF(
+			"main.swf",
+			"flashVideoPlayer",
+			800,
+			450,
+			"9.0.0",
+			null,
+			flashvars,
+			params
+		);
+		
+		// ]]>
+	</script>
+</body>
+</html>

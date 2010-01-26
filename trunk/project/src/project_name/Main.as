@@ -23,7 +23,7 @@
 	 */
 	
     //[Frame(factoryClass="project_name.loader.SelfPreloaderIcon")] // precisa da as3classes
-	 
+	[SWF(width='1002', height='596', backgroundColor='#FFFFFF', frameRate='60')]
 	public class Main extends SaciSprite {
 		
 		protected var _console:Console;
@@ -72,11 +72,6 @@
 			 */
 			Logger.init(_bpc, _bpc > 0 && DocumentUtil.isWeb() ? _console.log : trace);
 			Logger.logLevel = _bpc;
-			
-			/**
-			 * Registra fontes
-			 */
-			FontLibrary.addFont("myriad", "regular", lib_MyriadPro);
 			
 			/**
 			 * Load Data (build site)

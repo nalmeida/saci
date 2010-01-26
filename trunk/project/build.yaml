@@ -1,0 +1,23 @@
+default:
+   - debug: true
+     open: bin/swf/main.swf
+     extra: -use-network=false -verbose-stacktraces=false -warn-no-type-decl=false -show-actionscript-warnings=false -strict=true
+
+library-path:
+    # external libraries
+    - ../external-libs/swfaddress.swc
+    - ../external-libs/adobe.json.swc
+    - ../external-libs/hires.stats.swc
+    - ../external-libs/stimuli.bulkloader.swc
+    - ../external-libs/redneck.swc
+    # assets
+    - lib/fonts.swc
+
+source-path:
+   - src
+   # abaixo apontando para a saci (em um projeto de verdade, a saci estaria dentro de "src")
+   - ../src
+
+applications:
+   - class: src/project_name/Main.as
+     output: bin/swf/main.swf
