@@ -8,6 +8,7 @@
 	import redneck.ui.Slider;
 	import saci.ui.SaciSprite;
 	import saci.uicomponents.VideoPlayer;
+	import saci.util.Logger;
 	
 	/**
 	 * @author Nicholas Almeida
@@ -41,7 +42,7 @@
 		
 		private var _volumeSlider:Slider;
 		private var _videoSlider:Slider;
-		private var _slidingVideo:Boolean = false;
+		private var _slidingVideo:Boolean;
 		private var _volume:Number;
 		
 		public static const VOLUME_CHANGED:String = "volumeChanged";
@@ -73,7 +74,6 @@
 			_volumeBase.visible = false;
 			_volumePercent.mouseEnabled = false;
 					
-			_createSlider();
 			_loadMask.scaleX = 0;
 			_timeTrack.mask = _loadMask;
 			_timeTrack.mouseEnabled = false;
@@ -110,6 +110,8 @@
 				_muteButton.visible = true;
 				_unmuteButton.visible = false;
 			}
+			
+			_createSlider();
 			
 			_listenerManager.addEventListener(_playButton, MouseEvent.CLICK, play);
 			_listenerManager.addEventListener(_pauseButton, MouseEvent.CLICK, pause);
@@ -201,14 +203,12 @@
 			_videoPlayer.rewind();
 		}
 		
-		public function seek(time:Number, playAfter:Boolean = true ):void {
-			_videoPlayer.seek(time, playAfter);
+		public function seek(time:Number):void {
+			_videoSlider.percent = time / _videoPlayer.video.duration;
 		}
 		
 		public function seekVolume(value:Number):void {
-			_volumePercent.y = _sliderVolumeButton.y = _volumeTrack.height * (1 - value);
-			_volumePercent.height = (_volumeTrack.height * value) + _sliderVolumeButton.height - 1;
-			volume = value;
+			_volumeSlider.percent = 1 - value;
 		}
 		
 		/**
@@ -225,10 +225,6 @@
 			
 			_volumeSlider.seek = true;
 			_listenerManager.addEventListener(_volumeSlider, SliderEvent.ON_CHANGE, _onSlideVolume);
-			
-			if(_videoPlayer.volume != _volume) {
-				seekVolume(_videoPlayer.volume);
-			}
 		}
 		
 		private function _onSlideVolume(e:SliderEvent):void {
@@ -269,7 +265,7 @@
 					if (calc >= _videoPlayer.video.duration) {
 						calc = _videoPlayer.video.duration;
 					}
-					seek(calc, _videoPlayer.video.isPlaying);
+					_videoPlayer.video.seek(calc, _videoPlayer.video.isPlaying);
 				}
 			}
 		}

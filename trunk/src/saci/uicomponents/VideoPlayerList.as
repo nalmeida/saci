@@ -25,6 +25,10 @@
 		protected var _currentPage:int = 0;
 		
 		public function VideoPlayerList() {
+			/*
+				TODO ADAPTAR VIDEO PLAYER LIST À NOVA VERSÃO DA VIDEO PLAYER.
+			*/
+			throw new Error("VIDEO PLAYER LIST IS NOT FINISHED.")
 			_arrMedia = [];
 			_arrPages = [];
 			super();

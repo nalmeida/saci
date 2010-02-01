@@ -18,41 +18,114 @@
 	<link rel="shortcut icon" href="../img/favicon.ico" />
 	<style type="text/css">
 		body{
-			padding:0;
+			padding:10px;
 			margin:0;
+			font-size:0.8em;
+			font-family: Georgia, Times;
+		}
+		h1, h2{
+			margin:0.5em 0;
+		}
+		li{
+			margin-bottom:5px;
+		}
+		li li{
+			margin:0;
+		}
+		li em{
+			color:#E16400;
 		}
 	</style>
 	<script type="text/javascript" src="js/swfobject.js"></script>
 	<script type="text/javascript" charset="utf-8">
 		// <![CDATA[
 		(function(scope){
-			
-			function play(){
-				alert("play");
-			};
-			function pause(){
-				alert("pause");
-			};
-			function togglePlayPause(){
-				alert("togglePlayPause");
-			};
-			function rewind(){
-				alert("rewind");
-			};
-			function changeVideo(){
-				alert("changeVideo");
-			};
-			
+			var elm1 = null;
+			var elm2 = null;
 			scope.videoPlayer = {
-				play: play,
-				pause: pause,
-				togglePlayPause: togglePlayPause,
-				rewind: rewind,
-				changeVideo: changeVideo
+				playVideo: function(){
+					if(elm1){
+						elm1.playVideo();
+					}
+				},
+				seekVideo: function(){
+					if(elm1){
+						elm1.seekVideo(document.getElementById("seekValue").value, document.getElementById("seekPayAfter").value == "true");
+					}
+				},
+				pauseVideo: function(){
+					if(elm1){
+						elm1.pauseVideo();
+					}
+				},
+				playPauseVideo: function(){
+					if(elm1){
+						elm1.playPauseVideo();
+					}
+				},
+				rewindVideo: function(){
+					if(elm1){
+						elm1.rewindVideo();
+					}
+				},
+				changeVideo: function(){
+					if(elm1){
+						var previewURL = document.getElementById("previewURL").value;
+						elm1.changeVideo(document.getElementById("flv").value, previewURL != "" ? previewURL : null);
+					}
+				},
+				setVideoVolume: function(){
+					if(elm1){
+						elm1.setVideoVolume(document.getElementById("volume").value);
+					}
+				},
+				setVideoProperty: function(){
+					if(elm1){
+						var value = document.getElementById("propertyValue").value;
+						if(value == "true" || value == "false"){
+							value = value == "true";
+						}
+						elm1.setVideoProperty(document.getElementById("propertyName").value, value);
+					}
+				},
+				status: function(data){
+					var dataAsString = "";
+					for (var i in data){
+						dataAsString += i+": "+data[i]+"<br />";
+					};
+					document.getElementById("status").innerHTML = data.type;
+					document.getElementById("data").innerHTML = dataAsString;
+					if(elm1 && elm2 && data.type == "play"){
+						elm2.pauseVideo();
+					}
+				},
+				resize: function(){
+					elm1.style.width = document.getElementById('resizeWidth').value;
+					elm1.style.height = document.getElementById('resizeHeight').value;
+				},
+				setVideo1: function(p_elm){
+					elm1 = p_elm;
+				},
+				setVideo2: function(p_elm){
+					elm2 = p_elm;
+				}
+			};
+			scope.toggleVisible = function(status, elmToHide){
+				status.parentNode.style.cursor = "pointer";
+				status.parentNode.onclick = function(){
+					if(elmToHide.style.display == "block"){
+						status.innerHTML = "+";
+						elmToHide.style.display = "none"
+					}else{
+						status.innerHTML = "-";
+						elmToHide.style.display = "block";
+					}
+				}
+				status.parentNode.onclick();
 			};
 		})(window);
 		window.onload = function(){
-			var elm = ["play", "pause", "togglePlayPause", "rewind", "changeVideo"];
+			var elm = ["playVideo", "seekVideo", "pauseVideo", "playPauseVideo", "rewindVideo", "changeVideo", "setVideoVolume", "setVideoProperty", "resize"];
 			
 			var currentElement;
 			for (var i=0; elm[i]; i++) {
@@ -61,54 +134,209 @@
 				currentElement.onclick = videoPlayer[elm[i]];
 			};
 			
-			
-			var btPause = document.getElementById("play");
-			btPause.href = "javascript:;";
-			btPause.onclick = videoPlayer.play;
-		}
-		// ]]>
-	</script>
-</head>
-<body>
-	<div id="flashVideoPlayer"></div>
-	<ul>
-		<li><a id="play" href="#play">videoPlayer.play()</a></li>
-		<li><a id="pause" href="#pause">videoPlayer.pause()</a></li>
-		<li><a id="togglePlayPause" href="#togglePlayPause">videoPlayer.togglePlayPause()</a></li>
-		<li><a id="rewind" href="#rewind">videoPlayer.rewind()</a></li>
-		<li><a id="changeVideo" href="#changeVideo">videoPlayer.changeVideo()</a></li>
-	</ul>
-	<script type="text/javascript" charset="utf-8">
-		// <![CDATA[
-		var flashvars = {
-			fullScreenEnabled: "true",
-			timerEnabled: "true",
-			bufferTime: 5,
-			smoothing: "true",
-			timeout: 5,
-			previewURL: "ext/flap1.png",
-			autoSize: "none", // none (esticado) || bigger (sangrado) || smaller (tarjas pretas) || original
-			skin: "ext/skin.swf",
-			flv: "ext/flap1.flv",
+			toggleVisible(document.getElementById("close1Status"), document.getElementById("close1"));
+			toggleVisible(document.getElementById("close2Status"), document.getElementById("close2"));
 		};
-		var params = {
+		
+		var flashParams = {
 			menu: "false",
 			allowFullScreen: true,
 			allowscriptaccess: 'always'
 		};
-		
-		swfobject.embedSWF(
-			"main.swf",
-			"flashVideoPlayer",
-			800,
-			450,
-			"9.0.0",
-			null,
-			flashvars,
-			params
-		);
-		
 		// ]]>
 	</script>
+</head>
+<body>
+	<h1>Video Player Component</h1>
+	<h2>Aplicação simples, rápida e indolor</h2>
+	<p>Aplicação simples carregando o vídeo "flap1.flv" no div "flashVideoPlayer". Executará 1x o método "videoPlayer.onFirstPlay" na primeira interação do usuário e "videoPlayer.onFirstComplete" na primeira finalização do vídeo.</p>
+	<pre>
+&lt;div id=&quot;flashVideoPlayer&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;
+	// &lt;![CDATA[
+	(function(){
+		var flashParams = {
+			menu: "false",
+			allowFullScreen: true,
+			allowscriptaccess: 'always'
+		};
+		var flashvars = {
+			flv: &quot;ext/flap1.flv&quot;,
+			onFirstPlay: &quot;videoPlayer.onFirstPlay&quot;,
+			onFirstComplete: &quot;videoPlayer.onFirstComplete&quot;
+		};
+		swfobject.embedSWF(
+			&quot;video_player.swf&quot;,
+			&quot;flashVideoPlayer&quot;,
+			800,
+			450,
+			&quot;9.0.0&quot;,
+			null,
+			flashvars,
+			flashParams
+		);
+	})();
+	// ]]&gt;
+&lt;/script&gt;
+	</pre>
+	<h2>Configuração via Flashvars</h2>
+	<div id="flashVideoPlayer"></div>
+	<h3>Flash vars <span id="close1Status">+</span></h3>
+	<ul id="close1">
+		<li><strong>// OBRIGATORIO</strong></li>
+		<li>flv: "ext/flap1.flv",</li>
+		<li><strong>// OPCIONAL</strong></li>
+		<li>autoHideBar: "false", <em>// default false</em></li>
+		<li>autoSize: "smaller", <em>// none (esticado) || bigger (sangrado) || smaller (tarjas pretas, default) || original</em></li>
+		<li>bufferTime: 5, <em>// em segundos. default 5</em></li>
+		<li>fullScreenEnabled: "true", <em>// default false</em></li>
+		<li>hideInactiveMouseCursor: "true", <em>// esconde o cursor do mouse por cima do vídeo se parado por mais de 1 segundo. default true</em></li>
+		<li>hideInactiveMouseCursorTime: 1, <em>// tempo para esconder o cursor do mouse e a barra de controle, default: 1</em></li>
+		<li>linkage: "lib_videoPlayerSkin" <em>// linkage name do skin do video. default: "lib_videoPlayerSkin"</em></li>
+		<li>previewURL: "ext/flap1.png", <em>// pode ser imagem ou swf</em></li>
+		<li>skin: "./ext/customVideoPlayerAssets.swf",</li>
+		<li>smoothing: "true", <em>// default true</em></li>
+		<li>timeout: 5000, <em>// timeout (in milisegundos). default 5000</em></li>
+		<li>timerEnabled: "true", <em>// default true</em></li>
+		<li>useSharedObject: "false", <em>//// "cookie" usado por enquanto para guardar apenas o volume. default: true</em></li>
+		<li>volume: 0.5, <em>// 0 to 1, default 0.7</em></li>
+		<li><strong>// JS Listeners (called in flash events)</strong></li>
+		<li>onComplete: "videoPlayer.status",</li>
+		<li>onFirstComplete: "videoPlayer.status",</li>
+		<li>onFirstPlay: "videoPlayer.status",</li>
+		<li>onPause: "videoPlayer.status",</li>
+		<li>onPlay: "videoPlayer.status",</li>
+		<li>onRewind: "videoPlayer.status",</li>
+		<li>onVolume: "videoPlayer.status"</li>
+	</ul>
+	<h3>Métodos chamados via javascript <span id="close2Status">+</span></h3>
+	<ul id="close2">
+		<li><a id="playVideo" href="#playVideo">videoPlayer.playVideo()</a></li>
+		<li><a id="seekVideo" href="#seekVideo">videoPlayer.seekVideo</a>(<input type="text" value="2" id="seekValue" size="4" />, <input type="text" value="true" id="seekPayAfter" size="4" />) <em>// time (em segundos), play</em></li>
+		<li><a id="pauseVideo" href="#pauseVideo">videoPlayer.pauseVideo()</a></li>
+		<li><a id="playPauseVideo" href="#playPauseVideo">videoPlayer.playPauseVideo()</a></li>
+		<li><a id="rewindVideo" href="#rewindVideo">videoPlayer.rewindVideo()</a></li>
+		<li>
+			<a id="changeVideo" href="#changeVideo">videoPlayer.changeVideo</a>(<input type="text" value="./ext/flap2.flv" id="flv" size="20" />, <input type="text" value="./ext/flap2.png" id="previewURL" size="20" />)
+			<em>// flv, previewURL (can be image or swf)</em>
+		</li>
+		<li><a id="setVideoVolume" href="#setVideoVolume">videoPlayer.setVideoVolume</a>(<input type="text" value="0.5" id="volume" size="4" />)</li>
+		<li>
+			<a id="setVideoProperty" href="#setVideoProperty">videoPlayer.setVideoProperty</a>(<input type="text" value="autoSize" id="propertyName" size="20" />, <input type="text" value="original" id="propertyValue" size="20" />)
+			<ul>
+				<li>"autoHideBar" {Boolean}</li>
+				<li>"autoSize" {String}</li>
+				<li>"bufferTime" {Number}</li>
+				<li>"fullScreenEnabled" {Boolean}</li>
+				<li>"hideInactiveMouseCursor" {Boolean}</li>
+				<li>"hideInactiveMouseCursorTime" {Number}</li>
+				<li>"smoothing" {Boolean}</li>
+				<li>"timeout" {Number}</li>
+				<li>"timerEnabled" {Boolean}</li>
+				<li>"useSharedObject" {Boolean}</li>
+				<li>"volume" {Number}</li>
+			</ul>
+		</li>
+		<li><a id="resize" href="#resize">resizeVideo</a>(<input type="text" value="100%" id="resizeWidth" size="6" />, <input type="text" value="300px" id="resizeHeight" size="6" />)</li>
+		<li>
+			Current Status: <span id="status">INACTIVE</span>
+			<ul>
+				<li><strong>Available status</strong></li>
+				<li>"complete"</li>
+				<li>"firstTimeComplete"</li>
+				<li>"firstTimePlay"</li>
+				<li>"pause"</li>
+				<li>"play"</li>
+				<li>"volumeChanged"</li>
+			</ul>
+		</li>
+		<li>
+			Data:<br>
+			<span id="data">NONE</span>
+		</li>
+	</ul>
+	<script type="text/javascript" charset="utf-8">
+		// <![CDATA[
+		(function(){
+			var flashvars = {
+				// obrigatorio
+				flv: "ext/flap1.flv",
+				// opcional
+				autoHideBar: "true", // default false
+				autoSize: "smaller", // none (esticado) || bigger (sangrado) || smaller (tarjas pretas, default) || original
+				bufferTime: 5, // buffertime in seconds. default 5
+				fullScreenEnabled: "true", // default false
+				hideInactiveMouseCursor: "true", // default true
+				// linkage: "lib_videoPlayerSkin" // default: "lib_videoPlayerSkin"
+				// hideInactiveMouseCursorTime: 1, // tempo para esconder o cursor do mouse e a barra de controle
+				previewURL: "ext/flap1.png", // can be image or swf
+				// skin: "./ext/customVideoPlayerAssets.swf",
+				smoothing: "true", // default true
+				timeout: 5000, // timeout (in milliseconds). default 5000
+				timerEnabled: "true", // default true
+				useSharedObject: "false", // default true
+				volume: 0.5, // 0 to 1, default 0.7
+
+				// js listeners (called in flash events)
+				onFirstPlay: "videoPlayer.status",
+				onFirstComplete: "videoPlayer.status",
+				onPlay: "videoPlayer.status",
+				onComplete: "videoPlayer.status",
+				onRewind: "videoPlayer.status",
+				onPause: "videoPlayer.status",
+				onVolume: "videoPlayer.status"
+			};
+			swfobject.embedSWF(
+				"video_player.swf",
+				"flashVideoPlayer",
+				800,
+				450,
+				"9.0.0",
+				null,
+				flashvars,
+				flashParams,
+				null,
+				function(e){
+					videoPlayer.setVideo1(e.ref);
+				}
+			);
+		})();
+		// ]]>
+	</script>
+	
+	<h2>Configuração via <a href="ext/video-player-config.xml" title="ver XML de exemplo">XML</a></h2>
+	<p>
+		A configuração via <a href="ext/video-player-config.xml" title="ver XML de exemplo">XML</a> contém as mesmas propriedades da configuração via flashvars.
+		<br>
+		É possível usar as propriedades mescladas, a ordem de prioridade é flashvars = 1; xml = 2. Ou seja, qualquer propriedade em flashvars irá sobrepor o xml.
+	</p>
+	<div id="flashVideoPlayerXML"></div>
+	<script type="text/javascript" charset="utf-8">
+		// <![CDATA[
+		(function(){
+			var flashvars = {
+				configXML: "ext/video-player-config.xml"
+			};
+			swfobject.embedSWF(
+				"video_player.swf",
+				"flashVideoPlayerXML",
+				800,
+				450,
+				"9.0.0",
+				null,
+				flashvars,
+				flashParams,
+				null,
+				function(e){
+					videoPlayer.setVideo2(e.ref);
+				}
+			);
+		})();
+		// ]]>
+	</script>
+	
+	<h2>Skin</h2>
+	<p>Para mudar o skin do player, use o FLA disponível em <a href="http://saci.googlecode.com/svn/trunk/src/saci/uicomponents/videoPlayer/videoPlayerAssets/videoPlayerAssets.fla" target="_blank">http://saci.googlecode.com/svn/trunk/src/saci/uicomponents/videoPlayer/videoPlayerAssets/videoPlayerAssets.fla</a></p>
+	
 </body>
 </html>
