@@ -1,5 +1,6 @@
 =Video Player Stand-alone=
 O player stand-alone foi criado para facilitar a aplicação de video com controles padrão em um site html sem a necessidade de recompilar o projeto.
+*É possível customisá-lo usando um swf externo*.
 
 ==Informação sobre comportamento==
  * O botão "play" se substitui pelo pause;
@@ -11,7 +12,7 @@ O player stand-alone foi criado para facilitar a aplicação de video com contro
  * É possível apresentar o vídeo no formato "original" (apenas se centralizará no player), "adaptado" (se adapta ao tamanho maior do video, deixando tarjas pretas), "zoom" (fica sangrado para não deixar tarjas) e esticado;
 
 ===O player compilado está em:===
-[http://saci.googlecode.com/svn/trunk/samples/videoplayer/bin/video_player.swf video player] http://saci.googlecode.com/svn/trunk/samples/videoplayer/bin/video_player.swf
+http://saci.googlecode.com/svn/trunk/samples/videoplayer/bin/video_player.swf
 
 ===Documentação e exemplo de utilização em:===
 http://saci.googlecode.com/svn/trunk/samples/videoplayer/bin/example.html
