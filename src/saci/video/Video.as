@@ -129,6 +129,7 @@
 		public function play():void {
 			hidePreview();
 			_redneckVideoPlayer.play();
+			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
 		}
 		public function mute():void {
 			_redneckVideoPlayer.volume = 0;
@@ -163,6 +164,16 @@
 			if(!isNaN(p_width)){_videoArea.width = p_width;}
 			if(!isNaN(p_height)){_videoArea.height = p_height;}
 			switch(_autoSize){
+				case AUTO_SIZE_ORIGINAL:
+					if(_redneckVideoPlayer != null){
+						_redneckVideoPlayer.width = _redneckVideoPlayer.originalVideoSize.width;
+						_redneckVideoPlayer.height = _redneckVideoPlayer.originalVideoSize.height;
+						if(_preview != null){
+							_preview.width = _redneckVideoPlayer.width;
+							_preview.height = _redneckVideoPlayer.height;
+						}
+					}
+					break;
 				case AUTO_SIZE_SMALLER:
 				case AUTO_SIZE_BIGGER:
 					if(_redneckVideoPlayer != null){
@@ -354,6 +365,7 @@
 					_autoSize = value;
 					if (_redneckVideoPlayer != null)
 						_redneckVideoPlayer.autoSize = (_autoSize != AUTO_SIZE_NONE);
+					resize();
 				break;
 			}
 		}
