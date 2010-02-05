@@ -174,7 +174,7 @@ package{
 			_videoPlayer.useSharedObject = _config.useSharedObject == "true";
 			if(_config.volume != null)
 				_videoPlayer.volume = Number(_config.volume);
-			_videoPlayer.timeout = Number(_config.timeout);
+			_videoPlayer.timeout = Number(_config.timeout)*1000;
 			_videoPlayer.autoSize = _config.autoSize; // none (esticado) || bigger (sangrado) || smaller (tarjas pretas) || original
 			
 			if(_previewURL != null){
