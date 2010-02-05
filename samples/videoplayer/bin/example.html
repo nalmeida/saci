@@ -162,8 +162,8 @@
 		};
 		var flashvars = {
 			flv: &quot;ext/flap1.flv&quot;,
-			onFirstPlay: &quot;videoPlayer.onFirstPlay&quot;,
-			onFirstComplete: &quot;videoPlayer.onFirstComplete&quot;
+			onFirstPlay: &quot;videoPlayer.onFirstPlay&quot;, // tenta executar o javascript "onFirstPlay" na primeira vez que o vídeo dá play
+			onFirstComplete: &quot;videoPlayer.onFirstComplete&quot; // tenta executar o javascript "onFirstComplete" na primeira vez queo vídeo chega até o fim
 		};
 		swfobject.embedSWF(
 			&quot;video_player.swf&quot;,
