@@ -155,6 +155,8 @@
 			if(_flv != null && _flv != flvFile){
 				_disposeVideo();
 				init();
+			} else {
+				if(!_ready) init();
 			}
 			_flv = flvFile;
 			_redneckVideoPlayer.load(_flv);
@@ -207,6 +209,7 @@
 				_redneckVideoPlayer = null;
 			}
 			_completeCount = _playCount = 0;
+			_ready = false;
 		}
 		public function dispose():void {
 			_disposeVideo();
@@ -225,10 +228,7 @@
 				_simpleLoader = null;
 			}
 		}
-		
-		/**
-		 * PRIVATE
-		 */
+
 		public function init():void {
 			_redneckVideoPlayer = new VideoPlayer(_videoArea.width, _videoArea.height, _autoSize != AUTO_SIZE_NONE);
 			addChild(_redneckVideoPlayer);
@@ -245,6 +245,9 @@
 			_ready = true;
 		}
 		
+		/**
+		 * PRIVATE
+		 */
 		
 		// Preview Image Stuff
 		private function _initImage():void {
