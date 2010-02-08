@@ -300,7 +300,7 @@ package{
 			_listenerManager.removeEventListener(_loader, Event.COMPLETE, _onCompleteSkinLoad);
 			_loader.removeFailedItems();
 		}
-		protected function _onResize(e:Event){
+		protected function _onResize(e:Event):void{
 			if(_videoPlayer){
 				_videoPlayer.setSize(stage.stageWidth, stage.stageHeight);
 			}

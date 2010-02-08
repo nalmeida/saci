@@ -1,7 +1,7 @@
 default:
    - debug: true
      open: bin/video_player.swf
-     extra: -use-network=false -verbose-stacktraces=false -warn-no-type-decl=false -show-actionscript-warnings=false -strict=true
+     extra: -use-network=false -verbose-stacktraces=false -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true
 
 library-path:
     - ../../src/saci/uicomponents/videoPlayer/videoPlayerAssets/videoPlayerAssets.swc
