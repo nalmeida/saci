@@ -520,7 +520,7 @@
 		public function set hideInactiveMouseCursorTime(value:Number):void {
 			_hideInactiveMouseCursorTime = value;
 		}
-		public function get hideInactiveMouseCursor():Boolean { return _video.bufferTime; }
+		public function get hideInactiveMouseCursor():Boolean { return _hideInactiveMouseCursor; }
 		public function set hideInactiveMouseCursor(value:Boolean):void {
 			_hideInactiveMouseCursor = value;
 			if(value){
