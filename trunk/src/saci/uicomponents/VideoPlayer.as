@@ -57,7 +57,8 @@
 		protected var _timeout:int = 5000; // time in miliseconds
 		protected var _smoothing:Boolean;
 		
-		protected var _hasAlreadyStartedLoading:Boolean = false;
+		protected var _ready:Boolean;
+		protected var _hasAlreadyStartedLoading:Boolean;
 		protected var _controlInterval:uint;
 		protected var _volume:Number = .7;
 		protected var _isMute:Boolean;
@@ -70,6 +71,7 @@
 		protected var _mouseTimerIsActive:Boolean;
 		protected var _mouseVisibility:Boolean = true;
 		protected var _mouseIsOver:Boolean;
+		protected var _rewindAtEnd:Boolean = true;
 		protected var _mousePosition:Point;
 		protected var _hideInactiveMouseCursor:Boolean;
 		protected var _hideInactiveMouseCursorTime:Number = 1;
@@ -146,6 +148,7 @@
 			_addListeners();
 			_controlAll();
 			refresh();
+			_ready = true;
 		}
 		
 		/**
@@ -182,22 +185,26 @@
 		 *	loads video
 		 */
 		public function load(p_flv:String = null):void {
-			if (_video.ready) {
-				rewind();
+			if(_ready){
+				if (_video.ready) {
+					rewind();
+				}
+				if (_controlInterval <= 0) {
+					_controlInterval = setInterval(_controlAll, 100);
+				}
+				_hasAlreadyStartedLoading = true;
+				_flv = p_flv != null ? p_flv : _flv;
+				_video.load(_flv);
+			}else{
+				init(p_flv);
+				load();
 			}
-			if (_controlInterval <= 0) {
-				_controlInterval = setInterval(_controlAll, 100);
-			}
-			_hasAlreadyStartedLoading = true;
-			_flv = p_flv != null ? p_flv : _flv;
-			_video.load(_flv);
 		}
 		
 		/**
 		 *	starts loading and plays video (same as the big play button)
 		 */
 		public function rewind(e:Event = null):void {
-			stop();
 			_video.rewind();
 			_screen.showBigPlayIcon();
 			_video.showPreview();
@@ -275,8 +282,24 @@
 					}
 					_controlBar.pauseButton.visible = true;
 					_controlBar.playButton.visible = false;
+					
+					_screen.enable();
 					_screen.hideBigPlayIcon();
 					_video.hidePreview();
+					
+					if(_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)){
+						_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
+						mouseChildren = true;
+						buttonMode = false;
+					}
+					
+					if (!_listenerManager.hasEventListener(screen.base, MouseEvent.CLICK, playPause)) {
+						_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
+						_screen.disable();
+						_screen.showBufferIcon();
+						_screen.buttonMode = true;
+					}
+					
 					break;
 			}
 			
@@ -366,7 +389,8 @@
 		}
 		protected function _onComplete(e:VideoEvent):void{
 			_forwardEvent(e);
-			rewind();
+			if(_rewindAtEnd)
+				rewind();
 		}
 		
 		protected function _onVolumeChanged(e:Event):void {
@@ -375,17 +399,6 @@
 		
 		protected function _startLoading(e:MouseEvent = null):void {
 			if (!_hasAlreadyStartedLoading) {
-				
-				_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
-				if (!_listenerManager.hasEventListener(screen.base, MouseEvent.CLICK, playPause)) {
-					_listenerManager.addEventListener(screen.base, MouseEvent.CLICK, playPause);
-				}
-				_screen.disable();
-				_screen.showBufferIcon();
-				_screen.buttonMode = true;
-
-				mouseChildren = true;
-				buttonMode = false;
 				
 				if (_autoHideBar){
 					_onRollOver();
@@ -529,6 +542,12 @@
 				_removeMouseOverListeners();
 			}
 		}
+		
+		public function get rewindAtEnd():Boolean { return _rewindAtEnd; }
+		public function set rewindAtEnd(value:Boolean):void { _rewindAtEnd = value; }
+		
+		public function get autoStart():Boolean { return _video.autoStart; }
+		public function set autoStart(value:Boolean):void { _video.autoStart = value; }
 		
 		public function get flv():String { return _video.flv; }
 		public function set flv(value:String):void { 

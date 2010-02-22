@@ -5,6 +5,8 @@
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.net.NetStream;
+	import flash.utils.clearInterval;
+	import flash.utils.setInterval;
 	import flash.utils.setTimeout;
 	import saci.loader.SimpleLoader;
 	import saci.ui.SaciSprite;
@@ -78,6 +80,7 @@
 		private var _completeCount:int = 0;
 		private var _loopCount:int = 0;
 		private var _ready:Boolean = false;
+		private var _autoStartInt:uint;
 		
 		private var _redneckVideoPlayer:VideoPlayer;
 		private var _imgHolder:SaciSprite;
@@ -155,11 +158,14 @@
 			if(_flv != null && _flv != flvFile){
 				_disposeVideo();
 				init();
-			} else {
-				if(!_ready) init();
+			} else if(!_ready){
+				init();
 			}
 			_flv = flvFile;
 			_redneckVideoPlayer.load(_flv);
+			if (_autoStart) {
+				_createAutoStartInt();
+			}
 		}
 		
 		public function resize(p_width:Number = NaN, p_height:Number = NaN):void {
@@ -198,19 +204,6 @@
 			}
 		}
 		
-		protected function _disposeVideo():void {
-			_autoSized = false;
-			if(_redneckVideoPlayer != null){
-				_listenerManager.removeAllEventListeners(_redneckVideoPlayer);
-				_redneckVideoPlayer.dispose();
-				if (_redneckVideoPlayer.parent != null) {
-					_redneckVideoPlayer.parent.removeChild(_redneckVideoPlayer);
-				}
-				_redneckVideoPlayer = null;
-			}
-			_completeCount = _playCount = 0;
-			_ready = false;
-		}
 		public function dispose():void {
 			_disposeVideo();
 			
@@ -249,10 +242,25 @@
 		 * PRIVATE
 		 */
 		
+		// interval for "autoStart" mode (keeps verifying if the stream already exists)
+		protected function _createAutoStartInt():void{
+			clearInterval(_autoStartInt);
+			_autoStartInt = setInterval(_verifyStream, 300);
+		}
+		protected function _verifyStream():void {
+			if (_redneckVideoPlayer != null && _redneckVideoPlayer.stream != null) {
+				clearInterval(_autoStartInt);
+				play();
+			}
+		}
+		
 		// Preview Image Stuff
 		private function _initImage():void {
 			switch(true){
 				case (_previewURL != null && _previewURL != ""):
+					if(_simpleLoader != null){
+						_simpleLoader.destroy();
+					}
 					_simpleLoader = new SimpleLoader();
 					_listenerManager.addEventListener(_simpleLoader, Event.COMPLETE, _onLoadImageComplete);
 					_listenerManager.addEventListener(_simpleLoader, ErrorEvent.ERROR, _onLoadImageError);
@@ -304,6 +312,21 @@
 			if(_preview.parent != null){
 				_preview.parent.removeChild(_preview);
 			}
+		}
+		
+		// dispose only video
+		protected function _disposeVideo():void {
+			_autoSized = false;
+			if(_redneckVideoPlayer != null){
+				_listenerManager.removeAllEventListeners(_redneckVideoPlayer);
+				_redneckVideoPlayer.dispose();
+				if (_redneckVideoPlayer.parent != null) {
+					_redneckVideoPlayer.parent.removeChild(_redneckVideoPlayer);
+				}
+				_redneckVideoPlayer = null;
+			}
+			_completeCount = _playCount = 0;
+			_ready = false;
 		}
 		
 		/**

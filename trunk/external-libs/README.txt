@@ -1,4 +1,5 @@
 ## redneck
+## -- needs redneck @ http://www.ialmeida.com/projects/redneck @ revision 662
 ## -- needs br.com.stimuli.BulkLoader @ http://bulk-loader.googlecode.com/svn/trunk/src/br/com/stimuli/loading @ revision 319
 ## -- needs br.com.stimuli.string @ http://printf-as3.googlecode.com/svn/trunk/src/br/com/stimuli/string @ revision 20
 ## -- needs com.adobe.serialization.JSON @ http://as3corelib.googlecode.com/svn/trunk/src/com/adobe/serialization/json @ revision 113

@@ -17,6 +17,7 @@
 		<autoSize type="string">smaller</autoSize><!-- none (esticado) || bigger (sangrado) || smaller (tarjas pretas, default) || original-->
 		<timeout type="number">5000</timeout> <!-- timeout (in milliseconds). default 5000 -->
 		<hideInactiveMouseCursor type="boolean">true</hideInactiveMouseCursor> <!-- default true -->
+		<rewindAtEnd type="boolean">true</rewindAtEnd> <!-- default true -->
 
 		<!-- JS listeners (called in flash events) -->
 		<onFirstPlay type="string"></onFirstPlay>
