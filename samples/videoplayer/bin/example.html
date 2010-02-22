@@ -186,6 +186,7 @@
 		<li><strong>// OBRIGATORIO</strong></li>
 		<li>flv: "ext/flap1.flv",</li>
 		<li><strong>// OPCIONAL</strong></li>
+		<li>autoStart: "false", <em>// default false</em></li>
 		<li>autoHideBar: "false", <em>// default false</em></li>
 		<li>autoSize: "smaller", <em>// none (esticado) || bigger (sangrado) || smaller (tarjas pretas, default) || original</em></li>
 		<li>bufferTime: 5, <em>// em segundos. default 5</em></li>
@@ -200,6 +201,7 @@
 		<li>timerEnabled: "true", <em>// default true</em></li>
 		<li>useSharedObject: "false", <em>//// "cookie" usado por enquanto para guardar apenas o volume. default: true</em></li>
 		<li>volume: 0.5, <em>// 0 to 1, default 0.7</em></li>
+		<li>rewindAtEnd: "true", <em>// default true</em></li>
 		<li><strong>// JS Listeners (called in flash events)</strong></li>
 		<li>onComplete: "videoPlayer.status",</li>
 		<li>onFirstComplete: "videoPlayer.status",</li>
@@ -224,6 +226,8 @@
 		<li>
 			<a id="setVideoProperty" href="#setVideoProperty">videoPlayer.setVideoProperty</a>(<input type="text" value="autoSize" id="propertyName" size="20" />, <input type="text" value="original" id="propertyValue" size="20" />)
 			<ul>
+				<li>"autoStart" {Boolean}</li>
+				<li>"rewindAtEnd" {Boolean}</li>
 				<li>"autoHideBar" {Boolean}</li>
 				<li>"autoSize" {String}</li>
 				<li>"bufferTime" {Number}</li>
@@ -271,11 +275,13 @@
 				// hideInactiveMouseCursorTime: 1, // tempo para esconder o cursor do mouse e a barra de controle
 				previewURL: "ext/flap1.png", // can be image or swf
 				// skin: "./ext/customVideoPlayerAssets.swf",
+				autoStart: "true", // default false
 				smoothing: "true", // default true
 				timeout: 5000, // timeout (in milliseconds). default 5000
 				timerEnabled: "true", // default true
 				useSharedObject: "false", // default true
 				volume: 0.5, // 0 to 1, default 0.7
+				rewindAtEnd: "false", // default true
 
 				// js listeners (called in flash events)
 				onFirstPlay: "videoPlayer.status",

@@ -49,8 +49,10 @@ package{
 				autoHideBar: "false",
 				fullScreenEnabled: "false",
 				volume: null,
+				autoStart: "false",
 				timerEnabled: "true",
 				useSharedObject: "true",
+				rewindAtEnd: "true",
 				bufferTime: "5",
 				smoothing: "true",
 				timeout: "5",
@@ -168,10 +170,12 @@ package{
 				_videoPlayer.hideInactiveMouseCursorTime = Number(_config.hideInactiveMouseCursorTime);
 			_videoPlayer.fullScreenEnabled = _config.fullScreenEnabled == "true";
 			_videoPlayer.autoHideBar = _config.autoHideBar == "true";
+			_videoPlayer.autoStart = _config.autoStart == "true";
 			_videoPlayer.timerEnabled = _config.timerEnabled == "true";
 			_videoPlayer.bufferTime = Number(_config.bufferTime);
 			_videoPlayer.smoothing = _config.smoothing == "true";
 			_videoPlayer.useSharedObject = _config.useSharedObject == "true";
+			_videoPlayer.rewindAtEnd = _config.rewindAtEnd == "true";
 			if(_config.volume != null)
 				_videoPlayer.volume = Number(_config.volume);
 			_videoPlayer.timeout = Number(_config.timeout)*1000;
@@ -217,6 +221,10 @@ package{
 				}
 			}
 			_onResize(null);
+			trace('Main::_onAddedVideo() _config.autoStart: ', _config.autoStart);
+			if(_config.autoStart == "true"){
+				_videoPlayer.load();
+			}
 		}
 		
 		// JS callbacks
@@ -265,6 +273,7 @@ package{
 		}
 		protected function _setProperty(p_property:String, p_value:*):void{
 			switch(p_property){
+				case "autoStart":
 				case "autoHideBar":
 				case "timerEnabled":
 				case "smoothing":
