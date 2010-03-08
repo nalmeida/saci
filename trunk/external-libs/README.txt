@@ -11,7 +11,7 @@ FLEX_COMPC -sp SOURCE_PATH -ic com.adobe.serialization.json.JSON -o com.adobe.se
 
 ## as3classes.amf.AMFConnection
 ## -- needs as3classes.amf @ http://as3classes.googlecode.com/svn/trunk/as3classes/amf @ revision 197
-FLEX_COMPC -sp SOURCE_PATH -ic as3classes.amf.AMFConnection -o as3classes.amf.AMFConnection.swc
+FLEX_COMPC -sp SOURCE_PATH -ic as3classes.amf.AMFConnection as3classes.amf.AMFConnectionEvent -o as3classes.amf.AMFConnection.swc
 
 ## caurina
 ## -- needs caurina @ http://tweener.googlecode.com/svn/trunk/as3/caurina @ revision 424

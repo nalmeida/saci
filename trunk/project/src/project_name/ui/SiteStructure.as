@@ -89,7 +89,7 @@
 			// registrar os elementos estruturais (de lay out) aqui
 			
 			var txtTest:TextField = new TextField();
-			txtTest.wordWrap = 
+			txtTest.wordWrap = true;
 			txtTest.autoSize = flash.text.TextFieldAutoSize.LEFT;
 			txtTest.width = 500;
 			txtTest.defaultTextFormat = new TextFormat(null, 50);
