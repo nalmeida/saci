@@ -27,15 +27,9 @@
 	 *	@author Nicholas Almeida, Marcelo Miranda Carneiro
 	 *	@example
 	 *		<code>
-	 *			_videoPlayer = new VideoPlayer(new videoPlayerDefaultSkin());
-	 *			_videoPlayer.fullScreenEnabled = true;
-	 *			_videoPlayer.volume = .5;
-	 *			_videoPlayer.smoothing = true;
-	 *			_videoPlayer.setSize(500, 300);
-	 *			_videoPlayer.autoHideBar = true;
-	 *			_videoPlayer.previewURL = "flap.png";
-	 *			_videoPlayer.init("flap.flv");
-	 *			addChild(_videoPlayer);
+	 *		_videoPlayer = new VideoPlayer(_skin);
+	 * 		addChild(_videoPlayer);
+	 * 		_videoPlayer.init(_flv);
 	 *		</code>
 	 */
 	
@@ -286,6 +280,7 @@
 					_screen.enable();
 					_screen.hideBigPlayIcon();
 					_video.hidePreview();
+					_screen.hideBufferIcon();
 					
 					if(_listenerManager.hasEventListener(this, MouseEvent.CLICK, _startLoading)){
 						_listenerManager.removeEventListener(this, MouseEvent.CLICK, _startLoading);
@@ -381,6 +376,7 @@
 			if(!_video.isLoaded) {
 				Logger.logError("[VideoPlayer._onStreamNotFound] video: \"" + flv +  "\" not found");
 				dispatchEvent(e != null ? e : new VideoEvent(VideoEvent.PLAY_STREAMNOTFOUND));
+				_screen.showError("<b>ERROR</b>\nUnable to find:\"" + flv + "\"")
 				disable();
 				_listenerManager.removeAllEventListeners(video);
 				_controlBar.pauseButton.visible = true;
