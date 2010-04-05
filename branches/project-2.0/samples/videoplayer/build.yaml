@@ -1,0 +1,18 @@
+default:
+   - debug: true
+     open: bin/video_player.swf
+     extra: -use-network=false -verbose-stacktraces=false -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true
+
+library-path:
+    - ../../src/saci/uicomponents/videoPlayer/videoPlayerAssets/videoPlayerAssets.swc
+    - ../../external-libs/caurina.swc
+    - ../../external-libs/redneck.swc
+    - ../../external-libs/br.com.stimuli.loading.swc
+
+source-path:
+   - src
+   - ../../src
+
+applications:
+   - class: src/Main.as
+     output: bin/video_player.swf

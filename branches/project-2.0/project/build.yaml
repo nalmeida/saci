@@ -1,0 +1,17 @@
+default:
+   - debug: true
+     open: bin/swf/main.swf
+     extra: -use-network=false -verbose-stacktraces=true -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true
+
+library-path:
+    # external libraries
+    - ../external-libs/
+    # assets
+    - lib/fonts.swc
+
+source-path:
+   - src
+
+applications:
+   - class: src/project_name/Main.as
+     output: bin/swf/main.swf

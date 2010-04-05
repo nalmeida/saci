@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<player>
+		<flv type="string">./ext/flap1.flv</flv><!-- required. linkage name can be changed -->
+		
+		<!-- optional config -->
+		<previewURL type="string">./ext/flap1.png</previewURL><!-- can be image or swf -->
+		<skin type="string">./ext/customVideoPlayerAssets.swf</skin><!-- linkage name can be changed -->
+		<linkage type="string"></linkage><!-- default lib_videoPlayerSkin -->
+		<fullScreenEnabled type="boolean">true</fullScreenEnabled><!-- default false -->
+		<autoHideBar type="boolean">false</autoHideBar><!-- default false -->
+		<useSharedObject type="boolean">true</useSharedObject><!-- default true -->
+		<volume type="number"></volume><!-- 0 to 1, default 0.7 -->
+		<bufferTime type="number">10</bufferTime><!-- buffertime in seconds default 5 -->
+		<timerEnabled type="boolean">true</timerEnabled><!-- default true -->
+		<smoothing type="boolean">true</smoothing><!-- default true -->
+		<autoSize type="string">smaller</autoSize><!-- none (esticado) || bigger (sangrado) || smaller (tarjas pretas, default) || original-->
+		<timeout type="number">5000</timeout> <!-- timeout (in milliseconds). default 5000 -->
+		<hideInactiveMouseCursor type="boolean">true</hideInactiveMouseCursor> <!-- default true -->
+		<rewindAtEnd type="boolean">true</rewindAtEnd> <!-- default true -->
+
+		<!-- JS listeners (called in flash events) -->
+		<onFirstPlay type="string"></onFirstPlay>
+		<onFirstComplete type="string"></onFirstComplete>
+		<onPlay type="string"></onPlay>
+		<onComplete type="string"></onComplete>
+		<onRewind type="string"></onRewind>
+		<onPause type="string"></onPause>
+		<onVolume type="string"></onVolume>
+		
+	</player>
+</root>
