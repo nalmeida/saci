@@ -15,6 +15,15 @@
 	public class ClassUtil {
 		
 		/**
+		 * Retorna um SWF externo contém a classe
+		 * @param	externalSwf	Objeto do SWF
+		 * @param	className Nome da classe
+		 * @return
+		 */
+		public static function hasClassInSwf(externalSwf:DisplayObject, className:String):Boolean {
+			return externalSwf.loaderInfo.applicationDomain.hasDefinition(className);
+		}
+		/**
 		 * Retorna a Class de um SWF externo
 		 * @param	externalSwf	Objeto do SWF
 		 * @param	className Nome da classe
