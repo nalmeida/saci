@@ -1,0 +1,124 @@
+﻿<!-- 
+	Estrutura de seções e dependências
+ -->
+<root>
+	<!--
+		"Variáveis" globais usadas no restante do xml usando a seguinte notação:
+		
+		<global>
+			<carneiro value="marcelo miranda carneiro" />
+		</global>
+		
+		...
+		
+		<... value="{carneiro} é um cara legal" />
+	-->
+	<global>
+		<namespace value="project_name.ui.sessions" />
+	</global>
+	
+	<!-- 
+		Dependências e parâmetros carregados para a estrutura do site
+		como menus, footer, fundo ou qualquer coisa que não é específica de uma "seção"
+	-->
+	<base>
+		<!-- 
+			lista de itens externos que são considerados "necessários" para
+			a estrutura, serão carregados na ordem, a estrutura será construída
+			ao final do carregamento desta lista
+		-->
+		<dependencies>
+			<!-- 
+			item a ser carregado, no campo "value" é possível usar os "shortcuts"
+			definidos no html, como caminhos, variáveis de ambiente, etc
+			Se a dependência for um SWF, é possível registrar os linkages. Dentro da seção, o linkage é chamado usando a LinkageCollection
+			 -->
+			<!--
+			<item name="movieclipbase" value="{swfPath}base.swf" />
+			<item name="config" value="{configPath}base.txt" />
+			<item name="locale" value="{defaultLocalePath}dictionary.xml" >
+				<linkage name="lib_frame"			className="saci.ui.SaciSprite" />
+			</item>
+			-->
+		</dependencies>
+		
+		<!-- 
+        Parâmetros usados para a estrutura. O XML puro fará parte da instância project_name.sessions.Base.
+		Pode conter qualquer XML, mas inicialmente já está preparado para adicionar cada nó
+        que contenha "id" e "value" na classe project_name.data.sessions.ProjectParams
+		 -->
+		<params>
+			<!-- <item name="NAME" value="VALUE" /> -->
+		</params>
+	</base>
+	
+	<!-- 
+		Grupo das seções;
+			@defaultSessionId = id da seção carregada caso nenhuma deeplink válida seja passada
+	 -->
+	<sessions defaultSessionId="session1"> <!-- não implementado: useDeeplink="true" -->
+
+		<!-- 
+			XML de cada seção, tem uma estrutura muito parecida com a "base"
+				@id = id (único) da seção
+				@deeplink = deeplink da seção (colocar no formato final: "/nome/")
+				@className = Nome da classe que se instanciará e utilizará os dados do nó
+				@redirect = ignora o deeplink no analytics e manda para a seção (por id)
+		 -->
+		<session id="session1" deeplink="/session1/" className="{namespace}.BlankSession">
+			<!-- 
+				Dependências e parâmetros funcionam como no nó "<base>"
+			 -->
+			<!-- 
+			<dependencies>
+				<item name="NAME" value="VALUE" />
+			</dependencies>
+			<params>
+				<linkage id="ID" value="VALUE" />
+			</params>
+			 -->
+		</session>
+		
+		<!-- 
+			Exemplo de xml com sub-seções / conteúdos;
+			O XML das seções é recursivo, é possível ter uma seção dentro da outra recursivamente
+		-->
+		<session id="session2" deeplink="/session2/" className="{namespace}.BlankSession" redirect="session2.subArea1">
+			
+			<!--
+				Sub seção, similar à seção.
+			-->
+			<session id="session2.subArea1" deeplink="/sub-area1/" className="{namespace}.BlankSession">
+				<!--
+				<dependencies>
+					<item name="NAME" value="VALUE" />
+				</dependencies>
+				<params>
+					<linkage id="ID" value="VALUE" />
+				</params>
+				-->
+			</session>
+			
+			<!--
+				itens de uma seção (interações relacionadas a um deeplink), 
+				cada tag, adiciona um deeplink na navigation
+			-->
+			<content id="session2.content1" deeplink="interact1" className="{namespace}.BlankSession" >
+				<!--
+				<dependencies>
+					<item name="NAME" value="VALUE" />
+				</dependencies>
+				<params>
+					<linkage id="ID" value="VALUE" />
+				</params>
+				-->
+			</content>
+			
+			<!--
+				Redirects para criar clones de endereços, não cria histórico
+				e não manda pro analytics
+			-->
+			<content id="subAreaRedirect1" deeplink="subarea1" redirect="session2.subArea1" />
+		</session>
+	</sessions>
+</root>
