@@ -22,6 +22,6 @@ FLEX_COMPC -sp SOURCE_PATH -is SOURCE_PATH/caurina/ -o caurina.swc
 FLEX_COMPC -sp SOURCE_PATH -ic net.hires.debug.Stats -o net.hires.debug.Stats.swc
 
 ## com.asual.swfaddress.SWFAddress
-## --needs com.asual.swfaddress @ https://swfaddress.svn.sourceforge.net/svnroot/swfaddress/trunk/swfaddress/dist/as/3/com/asual/swfaddress/ @ revision 834 (need to change package)
-FLEX_COMPC -sp SOURCE_PATH -ic com.asual.swfaddress.SWFAddress -o com.asual.swfaddess.SWFAddress.swc
+## --needs com.asual.swfaddress @ https://swfaddress.svn.sourceforge.net/svnroot/swfaddress/trunk/swfaddress/dist/as/3/com/asual/swfaddress/ @ revision 857
+FLEX_COMPC -sp SOURCE_PATH -ic com.asual.swfaddress.SWFAddress -o com.asual.swfaddress.SWFAddress.swc
 
