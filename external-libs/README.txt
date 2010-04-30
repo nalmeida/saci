@@ -5,9 +5,9 @@
 ## -- needs com.adobe.serialization.JSON @ http://as3corelib.googlecode.com/svn/trunk/src/com/adobe/serialization/json @ revision 113
 FLEX_COMPC -sp SOURCE_PATH -is SOURCE_PATH/redneck/ -o redneck.swc## Redneck
 
-## com.adobe.serialization.json.JSON
-## -- needs com.adobe.json @ http://as3corelib.googlecode.com/svn/trunk/src/com/adobe/serialization/json @ revision 113
-FLEX_COMPC -sp SOURCE_PATH -ic com.adobe.serialization.json.JSON -o com.adobe.serialization.json.JSON.swc
+## com.adobe ## sem o pacote "com.adobe.air"
+## -- needs com.adobe @ http://as3corelib.googlecode.com/svn/trunk/src/com/adobe/ @ revision 113
+FLEX_COMPC -sp SOURCE_PATH -is SOURCE_PATH/adobe/ -o com.adobe.swc
 
 ## as3classes.amf.AMFConnection
 ## -- needs as3classes.amf @ http://as3classes.googlecode.com/svn/trunk/as3classes/amf @ revision 197
