@@ -7,7 +7,6 @@ package{
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import flash.external.ExternalInterface;
-	import flash.utils.setTimeout;
 	import redneck.events.VideoEvent;
 	import saci.events.ListenerManager;
 	import saci.uicomponents.VideoPlayer;
@@ -15,8 +14,6 @@ package{
 	import saci.video.Video;
 	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
 
-	
-	[SWF(width='1000', height='500', backgroundColor='#FFFFFF', frameRate='60')]
 	public class Main extends Sprite{
 
 		protected var _listenerManager:ListenerManager;
@@ -38,6 +35,20 @@ package{
 		}
 		public function _onPreload(e:Event = null):void{
 			
+			var video:Video = new Video();
+				video.autoStart = true;
+				video.videoArea.width = 300;
+				video.videoArea.height = 350;
+				video.autoSize = Video.AUTO_SIZE_SMALLER;
+		
+			var preview:Sprite = new Sprite();
+				preview.graphics.beginFill(0xFF0000, .5);
+				preview.graphics.drawRect(0, 0, 320, 180);
+				preview.graphics.endFill();
+		
+			video.preview = preview;
+			addChild(video);
+
 			_listenerManager = ListenerManager.getInstance();
 			
 			// default values
@@ -117,10 +128,10 @@ package{
 					_config[p] = loaderInfo.parameters[p];
 				}
 			}
-			if(loaderInfo.parameters["flv"] != null){
+			if(loaderInfo.parameters["flv"]){
 				_flv = loaderInfo.parameters["flv"];
 			}
-			if(loaderInfo.parameters["previewURL"] != null){
+			if(loaderInfo.parameters["previewURL"]){
 				_previewURL = loaderInfo.parameters["previewURL"];
 			}
 		}
