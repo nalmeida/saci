@@ -23,20 +23,20 @@
 	 *	@author Nicholas Almeida
 	 *	@example
 	 *		<code>
-	 *			var video:Video = nFew Video();
+	 *			var video:Video = new Video();
 	 *			video.autoStart = true;
 	 *			video.videoArea.width = 300;
 	 *			video.videoArea.height = 350;
 	 *			video.autoSize = Video.AUTO_SIZE_SMALLER;
 	 *			
-	 *			var preview = new Sprite();
+	 *			var preview:Sprite = new Sprite();
 	 *			preview.graphics.beginFill(0xFF0000, .5);
 	 *			preview.graphics.drawRect(0, 0, 320, 180);
 	 *			preview.graphics.endFill();
 	 *			
-	 *			_video.preview = preview;
-	 *			addChild(_video);
-	 *			_video.load("http://interface.aceite.fbiz.com.br/testes/flv/video.flv?v=1");
+	 *			video.preview = preview;
+	 *			addChild(video);
+	 *			video.load("http://interface.aceite.fbiz.com.br/testes/flv/video.flv?v=1");
 	 *		</code>
 	 */
 	public class Video extends SaciSprite {
@@ -230,6 +230,7 @@
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_START, _onPlay);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.METADATA, _onVideoMetadata);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_FULL, _onBufferFull);
+			
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.BUFFER_EMPTY, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_STREAMNOTFOUND, _forwardVideoEvent);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.SEEK_INVALIDTIME, _forwardVideoEvent);
@@ -345,6 +346,7 @@
 			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
 		}
 		private function _onVideoMetadata(e:VideoEvent):void {
+			_forwardVideoEvent(e);
 			if(_redneckVideoPlayer.stream.bufferTime != _bufferTime){
 				_redneckVideoPlayer.stream.bufferTime = _bufferTime;
 			}
@@ -362,7 +364,7 @@
 				play();
 			}
 			if (_playCount == 0) {
-				dispatchEvent(new VideoEvent(FIRST_TIME_PLAY));
+				dispatchEvent(new Event(FIRST_TIME_PLAY));
 				_playCount++;
 			}
 			
@@ -434,20 +436,20 @@
 		 * SETTERS GETTERS
 		 */
 		public function get redneckVideoPlayer():VideoPlayer { return _redneckVideoPlayer; }
-		public function get status():String { return _redneckVideoPlayer.status; }
-		public function get percentLoaded():Number { return _redneckVideoPlayer.percentLoaded; }
-		public function get duration():Number { return _redneckVideoPlayer.duration; }
-		public function get time():Number { return _redneckVideoPlayer.time; }
+		public function get status():String { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.status : null; }
+		public function get percentLoaded():Number { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.percentLoaded : NaN; }
+		public function get duration():Number { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.duration : NaN; }
+		public function get time():Number { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.time : NaN; }
 		public function get playCount():int { return _playCount; }
 		public function get completeCount():int { return _completeCount; }
-		public function get isPlaying():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isPlaying : false; }
-		public function get isStoped():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isStoped : false; }
-		public function get isPaused():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isPaused : false; }
-		public function get isLoaded():Boolean { return (redneckVideoPlayer != null) ? redneckVideoPlayer.isLoaded : false; }
-		public function get isMute():Boolean { return _isMute; }		
+		public function get isPlaying():Boolean { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.isPlaying : false; }
+		public function get isStoped():Boolean { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.isStoped : false; }
+		public function get isPaused():Boolean { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.isPaused : false; }
+		public function get isLoaded():Boolean { return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.isLoaded : false; }
+		public function get isMute():Boolean { return _isMute; }
 		public function get flv():String { return _flv; }
-		public function get stream():NetStream{ return redneckVideoPlayer.stream; }
-		public function get bufferLength():Number{ return redneckVideoPlayer.stream.bufferLength; }
+		public function get stream():NetStream{ return (_redneckVideoPlayer != null) ? _redneckVideoPlayer.stream : null; }
+		public function get bufferLength():Number{ return (_redneckVideoPlayer != null && _redneckVideoPlayer.stream != null) ? _redneckVideoPlayer.stream.bufferLength : NaN; }
 		
 		public function get autoStart():Boolean { return _autoStart; }
 		public function set autoStart(value:Boolean):void {

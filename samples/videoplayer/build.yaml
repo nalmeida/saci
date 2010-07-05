@@ -1,13 +1,11 @@
 default:
    - debug: true
      open: bin/video_player.swf
-     extra: -use-network=false -verbose-stacktraces=false -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true
+     extra: -default-size 1000 500 -default-background-color 0xFFFFFF -default-frame-rate=30 -target-player=10.0.0 -use-network=false -verbose-stacktraces=true -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true
 
 library-path:
-    - ../../src/saci/uicomponents/videoPlayer/videoPlayerAssets/videoPlayerAssets.swc
-    - ../../external-libs/caurina.swc
-    - ../../external-libs/redneck.swc
-    - ../../external-libs/br.com.stimuli.loading.swc
+    - lib
+    - ../../external-libs
 
 source-path:
    - src
