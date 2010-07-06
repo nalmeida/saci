@@ -48,7 +48,8 @@
 		protected var _fullScreenEnabled:Boolean;
 		protected var _timerEnabled:Boolean = true;
 		protected var _fullScreenMode:String = StageDisplayState.NORMAL; // normal or fullscreen
-		protected var _timeout:int = 5000; // time in miliseconds
+		protected var _timeoutVal:int = 5000; // time in miliseconds
+		protected var _timeout:uint;
 		protected var _smoothing:Boolean;
 		
 		protected var _ready:Boolean;
@@ -405,7 +406,7 @@
 			} else {
 				_video.play();
 				clearTimeout(_timeout);
-				_timeout = setTimeout(_onStreamNotFound, _timeout);
+				_timeout = setTimeout(_onStreamNotFound, _timeoutVal);
 			}
 		}
 		
@@ -679,9 +680,9 @@
 			}
 		}
 		
-		public function get timeout():int { return _timeout; }
+		public function get timeout():int { return _timeoutVal; }
 		public function set timeout(value:int):void {
-			_timeout = value;
+			_timeoutVal = value;
 		}
 		
 		public function get isMute():Boolean { return _isMute; }
