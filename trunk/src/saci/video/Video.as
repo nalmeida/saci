@@ -145,7 +145,9 @@
 
 		public function hidePreview():void{
 			if(_preview != null && _preview.parent != null){
-				setTimeout(_onHidePreview, 150);
+				if(_preview.parent != null){
+					_preview.parent.removeChild(_preview);
+				}
 			}
 		}
 		public function showPreview():void{
@@ -224,7 +226,6 @@
 
 		public function init():void {
 			_redneckVideoPlayer = new VideoPlayer(_videoArea.width, _videoArea.height, _autoSize != AUTO_SIZE_NONE);
-			addChild(_redneckVideoPlayer);
 			
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.COMPLETE, _onComplete);
 			_listenerManager.addEventListener(_redneckVideoPlayer, VideoEvent.PLAY_START, _onPlay);
@@ -309,12 +310,6 @@
 			}
 		}
 		
-		private function _onHidePreview():void{
-			if(_preview.parent != null){
-				_preview.parent.removeChild(_preview);
-			}
-		}
-		
 		// dispose only video
 		protected function _disposeVideo():void {
 			_autoSized = false;
@@ -354,8 +349,9 @@
 				_redneckVideoPlayer.volume = volume;
 			}
 			if(!_autoSized){
-				_autoSized = true
+				_autoSized = true;
 				resize(_videoArea.width, _videoArea.height);
+				addChild(_redneckVideoPlayer);
 			}
 		}
 		private function _onBufferFull(e:VideoEvent):void {

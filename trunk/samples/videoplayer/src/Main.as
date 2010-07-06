@@ -13,6 +13,7 @@ package{
 	import saci.util.ClassUtil;
 	import saci.video.Video;
 	import saci.uicomponents.videoPlayer.VideoPlayerControlBar;
+	import saci.util.Logger;
 
 	public class Main extends Sprite{
 
@@ -30,6 +31,8 @@ package{
 			
 			stage.scaleMode = "noScale";
 			stage.align = "topLeft";
+			
+			Logger.init(Logger.LOG_VERBOSE);
 			
 			Preloader.lazyCreator(this, _onPreload);
 		}
@@ -232,7 +235,6 @@ package{
 				}
 			}
 			_onResize(null);
-			trace('Main::_onAddedVideo() _config.autoStart: ', _config.autoStart);
 			if(_config.autoStart == "true"){
 				_videoPlayer.load();
 			}
