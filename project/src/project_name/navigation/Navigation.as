@@ -54,6 +54,7 @@
 		protected var _lastSession:Session;
 		protected var _redirectId:String;
 
+
 		public function Navigation():void {
 			if (Navigation._allowInstance !== true) {
 				throw new Error("Use the singleton Navigation.getInstance() instead of new Navigation().");
@@ -176,9 +177,15 @@
 		 */
 		protected function _buildSession():void {
 			
-			if(_currentSession.info.useAnalytics)
-				sendToAnalytics(_currentLink);
-			
+			if(_currentSession.info.useAnalytics) {
+				/**
+				 * Força a adição de uma string antes do envio da seção para o analytics (Ex.: quanquer-coisa/seção/sub-seção/.../)
+				 * Não influencia na navegação, é só uma opção para a chamada do tracker
+				 */
+				var trackerStr:String = Navigation._instance._sessionManager.trackerPrefix + _currentLink;
+				trackerStr = trackerStr.replace(/\/+/g, "/");
+				sendToAnalytics(trackerStr);
+			}
 			var sameLevelSessions:SessionCollection = _sessionManager.sessionCollection.getSameLevelById(_currentSession.info.id);
 			var openSessionAfter:Boolean = false;
 			
