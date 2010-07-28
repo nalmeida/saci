@@ -56,7 +56,7 @@
 		Grupo das seções;
 			@defaultSessionId = id da seção carregada caso nenhuma deeplink válida seja passada
 	 -->
-	<sessions defaultSessionId="session1"> <!-- não implementado: useDeeplink="true" -->
+	<sessions defaultSessionId="session1" trackerPrefix=""> <!-- não implementado: useDeeplink="true" --> <!-- trackerPrefix é um prefixo que pode ser adicionar uma string antes do deeplink que será enviado para o Analytics  -->
 
 		<!-- 
 			XML de cada seção, tem uma estrutura muito parecida com a "base"

@@ -62,6 +62,7 @@
 
 		private var _shortcuts:Object = {};
 		private var _defaultSessionID:String;
+		private var _trackerPrefix:String = "";
 		private var _defaultSessionAddress:String;
 		private var _useDeeplink:Boolean; //TODOFBIZ: --- [SessionManager._useDeeplink] implementar a useDeepLink
 		private var _sessionCollection:SessionCollection;
@@ -94,6 +95,8 @@
 			 for (i = 0; i < _xml.session.length(); i++) {
 				_parseSessionsXml(_xml.session[i]);
 			}
+			
+			trackerPrefix = _xml.@trackerPrefix || "";
 			
 			/**
 			 * define id da seção inicial (se etiver separado por pipeline,
@@ -151,7 +154,7 @@
 				_serverData.parseString(_serverData.parseString($xml.@className.toString(), _shortcuts)),
 				($xml.name().toString() == "content"),
 				$parent,
-				($xml.@useAnalytics.toString() == "true"),
+				!($xml.@useAnalytics.toString() == "false"),
 				_serverData.parseString(_serverData.parseString($xml.@redirect.toString(), _shortcuts)),
 				($xml.@overlay.toString() == "true"),
 				dependencies,
@@ -208,6 +211,15 @@
 		 * Se terminou de instanciar as seções
 		 */
 		public function get isFinished():Boolean { return _isFinished; }
+		
+		/**
+		 * Força a adição de uma string antes do envio da seção para o analytics (Ex.: quanquer-coisa/seção/sub-seção/.../)
+		 * Não influencia na navegação, é só uma opção para a chamada do tracker
+		 */
+		public function set trackerPrefix(p_trackerPrefix:String):void { 
+			_trackerPrefix = p_trackerPrefix; 
+		}
+		public function get trackerPrefix():String { return _trackerPrefix; }
 		
 	}
 }
