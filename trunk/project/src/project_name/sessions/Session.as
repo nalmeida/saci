@@ -10,23 +10,13 @@
 	 */
 
 	import flash.display.DisplayObject;
-	import flash.system.ApplicationDomain;
-	import flash.system.LoaderContext;
 	import project_name.loader.SaciBulkLoader;
 	import project_name.navigation.Navigation;
-	import project_name.sessions.collections.DependencyItemVOCollection;
 	import project_name.sessions.collections.DependencyLinkageCollection;
 	import project_name.sessions.collections.SessionCollection;
 	import project_name.sessions.vo.DependencyItemVO;
 	import project_name.sessions.vo.SessionInfoVO;
-	import br.com.stimuli.loading.BulkLoader;
-	import br.com.stimuli.loading.loadingtypes.LoadingItem;
-	import flash.display.DisplayObjectContainer;
-	import flash.events.ErrorEvent;
 	import flash.events.Event;
-	import flash.utils.setTimeout;
-	import saci.events.ListenerManager;
-	import saci.interfaces.IDestroyable;
 	import saci.ui.SaciSprite;
 	import saci.util.Logger;
 	
@@ -83,9 +73,11 @@
 
 		protected var _info:SessionInfoVO;
 		protected var _parentSession:Session;
+		protected var _parentSessions:Array = [];
 		protected var _children:SessionCollection;
 		protected var _loader:SaciBulkLoader;
 		
+		protected var _doCloseParentAfter:Boolean = false;
 		protected var _built:Boolean = false;
 		protected var _active:Boolean = false;
 		protected var _linkages:DependencyLinkageCollection;
@@ -107,6 +99,12 @@
 			_parentSession = Session.getByInfo(info.parent);
 			if(_parentSession != null && info.className != null){
 				_parentSession.addSessionChild(this);
+			}
+			
+			var currentParentSession:Session = _parentSession;
+			while(currentParentSession){
+				_parentSessions.push(currentParentSession);
+				currentParentSession = currentParentSession.parentSession;
 			}
 			
 			/**
@@ -131,15 +129,13 @@
 		 * Caso tenha um pai e ele não está aberto / carregado, começa o processo pelo pai (recursivo).
 		 */
 		public function open():void {
-			
 			if (_parentSession != null && !_parentSession.active) {
-				if (_listenerManager.hasEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent)) {
-					_listenerManager.removeEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent);
-				}
 				_listenerManager.addEventListener(_parentSession, COMPLETE_START_TRANSTITION, _openAfterParent);
 				_parentSession.open();
 				return;
 			}
+
+			/*trace("##open## ", info.deeplink);*/
 			
 			_active = true;
 			dispatchEvent(new Event(ON_ACTIVE));
@@ -173,18 +169,22 @@
 		 * Fecha a seção. Se houver filhos que não foram fechados, inicia o
 		 * processo de fechamento recursivo
 		 */
-		public function close():void {
+		public function close(closeParentAfter:Boolean = false):void {
 			//TODOFBIZ: --- [Session.close] verificar se a completeStartTransition foi disparada para evitar o erro de animação na timeline
-			if (_listenerManager.hasEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter)) {
-				_listenerManager.removeEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
-			}
+			
 			if (loaded) {
-				if (children.hasActive())
-					return;
-				if (_parentSession != null && _navigation.currentSession != _parentSession) {
-					if (_parentSession.children.itens.length > 0 && _parentSession.active) {
-						_listenerManager.addEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
+				/*trace("##close## children.hasActive(): ", children.hasActive(), info.deeplink);*/
+				if (children.hasActive()){
+					_doCloseParentAfter = closeParentAfter;
+					for (var i:int = 0; Boolean(children.itens[i]); i++){
+						if(children.itens[i].active){
+							children.itens[i].close(true);
+						}
 					}
+					return;
+				}
+				if (_parentSession != null && _navigation.currentSession != _parentSession && closeParentAfter) {
+					_listenerManager.addEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
 				}
 				_endTransition();
 			}
@@ -196,7 +196,8 @@
 		 */
 		private function _closeParentAfter($e:Event):void {
 			_listenerManager.removeEventListener(this, COMPLETE_END_TRANSTITION, _closeParentAfter);
-			_parentSession.close();
+			_parentSession.close(_parentSession._doCloseParentAfter);
+			_parentSession._doCloseParentAfter = false;
 		}
 		
 		/**
@@ -346,6 +347,7 @@
 		 * "Pai" da seção, para os casos de sub-seções.
 		 */
 		public function get parentSession():Session { return _parentSession; }
+		public function get parentSessions():Array { return _parentSessions.concat(); }
 		
 		/**
 		 * O "pai" no maior nível na árvore de de seções.

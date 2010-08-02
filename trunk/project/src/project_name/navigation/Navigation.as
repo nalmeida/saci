@@ -61,6 +61,10 @@
 			}
 		}
 		
+		public function goById($id:String):void {
+			var session:Session = _sessionManager.sessionCollection.getById($id);
+			go(session != null ? session.info.deeplink : $id);
+		}
 		/**
 		 * Chama uma seção pela SWFAddress.
 		 * @param	$deeplink deeplink da seção ([Session].info.deeplink)
@@ -119,8 +123,8 @@
 		 * @param	$target
 		 */
 		public function goExternal($deeplink:String, $url:String, $target:String):void {
-
-			sendToAnalytics($deeplink);
+			if($deeplink)
+				sendToAnalytics($deeplink);
 			URL.call($url, $target);
 		}
 		
@@ -193,7 +197,6 @@
 			 * Se a seção for nula, não faz nada.
 			 */
 			if (_currentSession != null) {
-				
 				/**
 				 * Pega seções do mesmo nível + ativas.
 				 */
@@ -201,27 +204,87 @@
 					if(
 						sameLevelSessions.itens[i].active
 						&& sameLevelSessions.itens[i] != _currentSession
-						&& sameLevelSessions.itens[i] != _currentSession.parentSession
 						&& !_currentSession.info.overlay
 					){
-						openSessionAfter = true;
 						/**
 						 * Adiciona o handler para abrir a seção chamada quando a seção atual for totalmente fechada.
 						 */
-						if (SessionCollection.isSubSection(_lastSession, _currentSession)) {
-							_listenerManager.addEventListener(_lastSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
-						}else {
-							_listenerManager.addEventListener(sameLevelSessions.itens[i].highestParentSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+						
+						var lastSessionArray:Array = _lastSession.info.deeplinkAsArray;
+						var currentSessionArray:Array = _currentSession.info.deeplinkAsArray;
+						var newSessionArray:Array = [];
+						
+						var maxLength:int = lastSessionArray.length > currentSessionArray.length ? lastSessionArray.length : currentSessionArray.length;
+						
+						for (var j:int = 0; j < maxLength; j++){
+							if(lastSessionArray[j] == currentSessionArray[j]){
+								newSessionArray[newSessionArray.length] = lastSessionArray[j];
+							}else{
+								newSessionArray[newSessionArray.length] = lastSessionArray[j];
+								break;
+							}
 						}
-						sameLevelSessions.itens[i].close();
+						/*trace(">>>>> Navigation::_buildSession() newSessionArray: ", newSessionArray);*/
+						
+						var parentSession:Session = _sessionManager.sessionCollection.getByDeeplink("/"+newSessionArray.join("/")+"/");
+						if(parentSession == null){
+							parentSession = sameLevelSessions.itens[i].highestParentSession;
+						}
+						
+						switch(true){
+							case (_lastSession.parentSession == null && _currentSession.parentSession == null):
+								/*trace("Navigation:: OPEN AFTER _lastSession: "+_lastSession.info.deeplink);*/
+								if(!openSessionAfter){
+									openSessionAfter = true;
+									_listenerManager.addEventListener(_lastSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+								}
+								_lastSession.close();
+								break;
+							case (_lastSession.highestParentSession != _currentSession.highestParentSession):
+								/*trace("Navigation:: OPEN AFTER _lastSession.highestParentSession: "+_lastSession.highestParentSession.info.deeplink);*/
+								if(!openSessionAfter){
+									openSessionAfter = true;
+									_listenerManager.addEventListener(_lastSession.highestParentSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+								}
+								_lastSession.highestParentSession.close();
+								break;
+							default:
+								/*trace("Navigation:: OPEN AFTER parentSession: "+parentSession.info.deeplink);*/
+								if(!openSessionAfter){
+									openSessionAfter = true;
+									_listenerManager.addEventListener(parentSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+								}
+								parentSession.close();
+								break;
+						}
 					}
 				}
+				
 				/**
 				 * Se não houver ativa, simplesmente abre a seção chamada.
 				 */
-				if(openSessionAfter == false){
-					_currentSession.open();
+				/*trace("Navigation::_buildSession() _currentSession.children.recursiveHasActive(): ", _currentSession.children.recursiveHasActive());*/
+				if(_currentSession.children.recursiveHasActive()){
+					for (var k:int = 0; Boolean(_currentSession.children.itens[k]); k++){
+						if(_currentSession.children.itens[k].active){
+							/*trace("close: ", _currentSession.children.itens[k].info.deeplink);*/
+							if(!openSessionAfter){
+								openSessionAfter = true;
+								_listenerManager.addEventListener(_currentSession.children.itens[k], Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+							}
+							_currentSession.children.itens[k].close();
+						}
+					}
 				}
+				if(!openSessionAfter){
+					if(_lastSession && _currentSession.parentSessions.indexOf(_lastSession) < 0){
+						_listenerManager.addEventListener(_lastSession, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
+						_lastSession.close();
+					}else{
+						_currentSession.open();
+					}
+				}
+				
 			}
 		}
 		
@@ -231,9 +294,8 @@
 		 */
 		protected function _openAfterTransition($e:Event):void {
 			_listenerManager.removeEventListener($e.target as Session, Session.COMPLETE_END_TRANSTITION, _openAfterTransition);
-			if (!_currentSession.active) {
-				_currentSession.open();
-			}
+			/*trace("Navigation::_openAfterTransition() _currentSession.active: ", _currentSession.active);*/
+			_currentSession.open();
 		}
 		
 		/**
