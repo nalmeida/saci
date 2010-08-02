@@ -128,18 +128,14 @@
 			var actLink:Array;
 			var returnValue:SessionCollection = new SessionCollection();
 			for (var i:int = 0; i < itens.length; i++) {
-				if (itens[i].active) {
-					returnValue.addItem(itens[i]);
-				}else{
-					actLink = itens[i].info.deeplinkAsArray;
-					if(oriLink.length == 1){
-						if (actLink.length == oriLink.length) {
-							returnValue.addItem(itens[i]);
-						}
-					}else {
-						if(actLink.length == oriLink.length && actLink[0] == oriLink[0]){
-							returnValue.addItem(itens[i]);
-						}
+				actLink = itens[i].info.deeplinkAsArray;
+				if(oriLink.length == 1){
+					if (actLink.length == oriLink.length) {
+						returnValue.addItem(itens[i]);
+					}
+				}else {
+					if(actLink.length == oriLink.length && actLink[0] == oriLink[0]){
+						returnValue.addItem(itens[i]);
 					}
 				}
 			}
@@ -167,6 +163,16 @@
 				if (itens[i].active) {
 					return true;
 				}
+			}
+			return false;
+		}
+		
+		public function recursiveHasActive():Boolean{
+			for (var i:int = 0; Boolean(itens[i]); i++){
+				if(itens[i].active)
+					return true;
+				if(itens[i].children.hasActive())
+					return true;
 			}
 			return false;
 		}
