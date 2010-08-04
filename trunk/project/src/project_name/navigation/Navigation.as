@@ -191,6 +191,8 @@
 				sendToAnalytics(trackerStr);
 			}
 			var sameLevelSessions:SessionCollection = _sessionManager.sessionCollection.getSameLevelById(_currentSession.info.id);
+			if(_lastSession != null)
+				sameLevelSessions.addItem(_lastSession);
 			var openSessionAfter:Boolean = false;
 			
 			/**
