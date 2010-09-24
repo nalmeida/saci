@@ -331,6 +331,7 @@
 			_listenerManager.addEventListener(_video, VideoEvent.BUFFER_FULL, _onBufferFull);
 			_listenerManager.addEventListener(_video, VideoEvent.BUFFER_EMPTY, _onBufferEmpty);
 			_listenerManager.addEventListener(_video, VideoEvent.PLAY_STREAMNOTFOUND, _onStreamNotFound);
+			_listenerManager.addEventListener(_video, VideoEvent.PLAY_START, _forwardEvent);
 			_listenerManager.addEventListener(_video, Video.FIRST_TIME_COMPLETE, _forwardEvent);
 			_listenerManager.addEventListener(_video, Video.FIRST_TIME_PLAY, _forwardEvent);
 			
