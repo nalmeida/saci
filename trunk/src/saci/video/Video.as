@@ -351,7 +351,7 @@
 			if(!_autoSized){
 				_autoSized = true;
 				resize(_videoArea.width, _videoArea.height);
-				addChild(_redneckVideoPlayer);
+				addChildAt(_redneckVideoPlayer, 0);
 			}
 		}
 		private function _onBufferFull(e:VideoEvent):void {
