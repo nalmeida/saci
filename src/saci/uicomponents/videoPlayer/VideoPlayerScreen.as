@@ -33,7 +33,7 @@
 				_videoHolder = _screen.getChildByName("videoHolder") as Sprite;
 				_bufferIcon = _screen.getChildByName("bufferIcon") as MovieClip;
 				_bigPlayIcon = _screen.getChildByName("bigPlayIcon") as Sprite;
-			
+
 			hideBufferIcon();
 
 			_bigPlayIcon.mouseChildren = 
@@ -51,7 +51,9 @@
 		}
 		
 		protected function _removeListContainer():void{
-			_screen.removeChild(_listContainer);
+			if(_listContainer){
+				_screen.removeChild(_listContainer);
+			}
 		}
 		
 		public function showError(str:String):void {
