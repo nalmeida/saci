@@ -6,6 +6,7 @@
 	import flash.display.StageScaleMode;
 	import flash.display.StageAlign;
 	import flash.events.Event;
+	import flash.display.StageDisplayState;
 	
 	/**
 	 * Classe estática que gerencia o root e o stage da documentClass.
