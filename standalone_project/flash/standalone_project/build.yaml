@@ -1,0 +1,15 @@
+default:
+   - debug: true
+     open: ../../www/assets/swf/project_name_main.swf
+     extra: -target-player=11.4.0 -default-frame-rate=30 -default-size 800 600 -default-background-color=0xFFFFFF -use-network=false -verbose-stacktraces=false -warn-no-type-decl=true -show-actionscript-warnings=true -strict=true 
+
+library-path:
+   - external-libs
+   - lib
+   
+source-path:
+   - src
+
+applications:
+   - class: src/project_name/Main.as
+     output: ../../www/assets/swf/project_name_main.swf
