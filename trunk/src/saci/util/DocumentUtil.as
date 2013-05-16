@@ -75,6 +75,24 @@
 		}
 		
 		/**
+		* Fullscreen
+		*/
+		public static function toggleFullscreen():void
+		{
+			switch (stage.displayState)
+			{
+				case StageDisplayState.NORMAL:
+					stage.displayState = StageDisplayState.FULL_SCREEN;
+					break;
+				
+				case StageDisplayState.FULL_SCREEN:
+					stage.displayState = StageDisplayState.NORMAL;
+					break;
+				
+			}
+		}
+		
+		/**
 		 * Retorna a largura do stage. Se tiver um maxWidth e o stage.width for maior, retorna o maxWidth. Se tiver um minWidth e o stage.width for menor, retorna o minWidth.
 		 */
 		public static function get width():Number {
