@@ -143,7 +143,6 @@
 		{
 			_assets = _siteStructure.bulk.getContent("assets");
 			_layerContent.addChild(_assets);
-			DocumentUtil.toggleFullscreen();
 		}
 		
 		/**
