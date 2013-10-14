@@ -13,7 +13,6 @@
 	import project_name.ui.base.Base;
 	import project_name.ui.SiteStructure;
 	import project_name.ui.loader.LoaderIcon;
-	import project_name.ui.navigation.buttons.OverButtonSelectable;
 	
 	/**
 	 * ...
@@ -94,7 +93,6 @@
 			if(_serverData.get("crossDomains") != null){
 				var crossDomains:Array = _serverData.get("crossDomains").split(",");
 				for (var j:int = 0; j < crossDomains.length; j++) {
-					var crossdomain:String = crossDomains[j];
 					Security.loadPolicyFile(crossDomains[j]);
 				}
 			}
@@ -152,8 +150,6 @@
 		{
 			var mc:MovieClip = _base.getLibraryItem("assets", "lib_ui") as MovieClip;
 			_layerUI.addChild(mc);
-			
-			var overButtonSelectable:OverButtonSelectable = new OverButtonSelectable(mc)
 		}
 		
 	}
